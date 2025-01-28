@@ -4,46 +4,42 @@ import (
 	"crypto/md5"
 	"fmt"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 var urlStore = make(map[string]string)
 
-func shortenUrl(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		url := r.FormValue("url")
-		shortUrl := fmt.Sprintf("%x", md5.Sum([]byte(url)))[:8]
-		urlStore[shortUrl] = url
-		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte("http://localhost:8080/" + shortUrl))
-	} else {
-		w.WriteHeader(http.StatusBadRequest)
+func shortenUrl(ctx *gin.Context) {
+	url := ctx.PostForm("url")
+
+	if url == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "url param required"})
+		return
 	}
+
+	shortUrl := fmt.Sprintf("%x", md5.Sum([]byte(url)))[:8]
+	urlStore[shortUrl] = url
+	ctx.IndentedJSON(http.StatusCreated, gin.H{"message": "http://localhost:8080/" + shortUrl})
 }
 
-func redirect(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
-		shortUrl := r.PathValue("id")
+func redirect(ctx *gin.Context) {
 
-		if urlStore[shortUrl] != "" {
-			w.WriteHeader(http.StatusTemporaryRedirect)
-			w.Write([]byte("Location: " + urlStore[shortUrl]))
-		} else {
-			w.WriteHeader(http.StatusBadRequest)
-		}
+	shortUrl := ctx.Param("id")
+
+	if urlStore[shortUrl] != "" {
+		ctx.IndentedJSON(http.StatusTemporaryRedirect, gin.H{"message": "Location: " + urlStore[shortUrl]})
 	} else {
-		w.WriteHeader(http.StatusBadRequest)
+		ctx.IndentedJSON(http.StatusBadRequest, gin.H{})
 	}
-
 }
 
 func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc(`/`, shortenUrl)
-	mux.HandleFunc(`/{id}`, redirect)
 
-	err := http.ListenAndServe(`:8080`, mux)
+	server := gin.Default()
+	server.HandleMethodNotAllowed = true
+	server.POST(`/`, shortenUrl)
+	server.GET(`/:id`, redirect)
 
-	if err != nil {
-		panic(err)
-	}
+	server.Run("localhost:8080")
 }
