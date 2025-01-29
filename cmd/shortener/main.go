@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/md5"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -10,13 +11,13 @@ var urlStore = make(map[string]string)
 
 func shortenURL(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
-		url := r.FormValue("url")
-		shortURL := fmt.Sprintf("%x", md5.Sum([]byte(url)))[:8]
-		urlStore[shortURL] = url
+		body, _ := io.ReadAll(r.Body)
+		defer r.Body.Close()
+		shortURL := fmt.Sprintf("%x", md5.Sum([]byte(body)))[:8]
+		urlStore[shortURL] = string(body)
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
-		finalUrl := "http://localhost:8080/" + shortURL
-		fmt.Fprint(w, finalUrl)
+		w.Write([]byte("http://localhost:8080/" + shortURL))
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
 	}
