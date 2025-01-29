@@ -22,11 +22,11 @@ func shortenURL(w http.ResponseWriter, r *http.Request) {
 
 func redirect(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		shortUrl := r.PathValue("id")
+		shortURL := r.PathValue("id")
 
-		if urlStore[shortUrl] != "" {
+		if urlStore[shortURL] != "" {
 			w.WriteHeader(http.StatusTemporaryRedirect)
-			w.Write([]byte("Location: " + urlStore[shortUrl]))
+			w.Write([]byte("Location: " + urlStore[shortURL]))
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
 		}
