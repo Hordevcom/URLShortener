@@ -16,7 +16,7 @@ func shortenURL(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
 		finalUrl := "http://localhost:8080/" + shortURL
-		fmt.Fprintln(w, finalUrl)
+		fmt.Fprint(w, finalUrl)
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
 	}
