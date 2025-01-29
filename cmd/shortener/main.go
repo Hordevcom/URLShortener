@@ -25,8 +25,8 @@ func redirect(w http.ResponseWriter, r *http.Request) {
 		shortURL := r.PathValue("id")
 
 		if urlStore[shortURL] != "" {
+			w.Header().Set("Location", urlStore[shortURL])
 			w.WriteHeader(http.StatusTemporaryRedirect)
-			w.Write([]byte("Location: " + urlStore[shortURL]))
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
 		}
