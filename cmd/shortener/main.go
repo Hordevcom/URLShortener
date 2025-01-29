@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 var urlStore = make(map[string]string)
@@ -22,7 +23,8 @@ func shortenURL(w http.ResponseWriter, r *http.Request) {
 
 func redirect(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		shortURL := r.PathValue("id")
+		path := r.URL.Path
+		shortURL := strings.TrimPrefix(path, "/")
 
 		if urlStore[shortURL] != "" {
 			w.Header().Set("Location", urlStore[shortURL])
