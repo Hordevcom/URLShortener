@@ -15,7 +15,8 @@ func shortenURL(w http.ResponseWriter, r *http.Request) {
 		urlStore[shortURL] = url
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte("http://localhost:8080/" + shortURL))
+		finalUrl := "http://localhost:8080/" + shortURL
+		fmt.Fprintln(w, finalUrl)
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
 	}
