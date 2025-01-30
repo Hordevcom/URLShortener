@@ -12,7 +12,12 @@ import (
 var urlStore = make(map[string]string)
 
 func shortenURL(ctx *gin.Context) {
-	url, _ := io.ReadAll(ctx.Request.Body)
+	url, err := io.ReadAll(ctx.Request.Body)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": err})
+	}
+	fmt.Println(string(url))
 
 	if string(url) == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "url param required"})
@@ -21,7 +26,7 @@ func shortenURL(ctx *gin.Context) {
 
 	shortURL := fmt.Sprintf("%x", md5.Sum([]byte(url)))[:8]
 	urlStore[shortURL] = string(url)
-	ctx.IndentedJSON(http.StatusCreated, gin.H{"message": "http://localhost:8080/" + shortURL})
+	ctx.String(http.StatusCreated, "http://localhost:8080/"+shortURL)
 }
 
 func redirect(ctx *gin.Context) {
