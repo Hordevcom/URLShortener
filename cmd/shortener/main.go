@@ -21,7 +21,7 @@ func shortenURL(ctx *gin.Context) {
 
 	shortURL := fmt.Sprintf("%x", md5.Sum([]byte(url)))[:8]
 	urlStore[shortURL] = string(url)
-	ctx.IndentedJSON(http.StatusCreated, gin.H{"message": "http://localhost:8080/" + shortUrl})
+	ctx.IndentedJSON(http.StatusCreated, gin.H{"message": "http://localhost:8080/" + shortURL})
 }
 
 func redirect(ctx *gin.Context) {
