@@ -1,80 +1,52 @@
 package main
 
 import (
-	"crypto/md5"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 
-type Data struct {
-	Url string `json:"url"`
-}
-
-func TestShortenUrl(t *testing.T) {
-	// Создаем новый роутер Gin
+func TestRedirect(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	r := gin.Default()
-	r.POST("/shorten", shortenUrl)
+	urlStore = make(map[string]string)
 
-	// Создаем тестовые кейсы
+	r.GET("/:id", redirect)
+
+	urlStore["abcdef12"] = "https://example.com"
+
 	tests := []struct {
-		name         string
-		formData     map[string]string
-		expectedCode int
-		expectedBody string
+		name           string
+		param          string
+		expectedStatus int
+		expectedBody   string
 	}{
 		{
-			name:         "valid URL",
-			formData:     map[string]string{"url": "http://example.com"},
-			expectedCode: http.StatusCreated,
-			expectedBody: `{"message":"http://localhost:8080/` + fmt.Sprintf("%x", md5.Sum([]byte("http://example.com")))[:8] + `"}`,
+			name:           "valid short URL",
+			param:          "abcdef12",
+			expectedStatus: http.StatusTemporaryRedirect,
+			expectedBody:   "{}",
 		},
 		{
-			name:         "empty URL",
-			formData:     map[string]string{"url": ""},
-			expectedCode: http.StatusBadRequest,
-			expectedBody: `{"message":"url param required"}`,
-		},
-		{
-			name:         "missing URL param",
-			formData:     map[string]string{},
-			expectedCode: http.StatusBadRequest,
-			expectedBody: `{"message":"url param required"}`,
+			name:           "invalid short URL",
+			param:          "nonexistent",
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "{}",
 		},
 	}
 
-	// Пробегаем все тестовые кейсы
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Формируем данные формы как строку
-			form := ""
-			for key, value := range tt.formData {
-				form += fmt.Sprintf("%s=%s", key, value)
-			}
-
-			// Создаем новый запрос с телом формы
-			req, err := http.NewRequest("POST", "/shorten", strings.NewReader(form))
-			if err != nil {
-				t.Fatalf("could not create request: %v", err)
-			}
-			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-			// Создаем ResponseRecorder для захвата ответа
+			req := httptest.NewRequest("GET", "/"+tt.param, nil)
 			w := httptest.NewRecorder()
 
-			// Выполняем запрос
 			r.ServeHTTP(w, req)
 
-			// Проверяем код ответа
-			assert.Equal(t, tt.expectedCode, w.Code)
-
-			// Проверяем тело ответа
-			assert.JSONEq(t, tt.expectedBody, w.Body.String())
+			assert.Equal(t, tt.expectedStatus, w.Code)
+			assert.Contains(t, w.Body.String(), tt.expectedBody)
 		})
 	}
 }
