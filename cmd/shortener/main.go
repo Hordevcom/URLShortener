@@ -19,17 +19,17 @@ func shortenURL(ctx *gin.Context) {
 		return
 	}
 
-	shortUrl := fmt.Sprintf("%x", md5.Sum([]byte(url)))[:8]
-	urlStore[shortUrl] = string(url)
+	shortURL := fmt.Sprintf("%x", md5.Sum([]byte(url)))[:8]
+	urlStore[shortURL] = string(url)
 	ctx.IndentedJSON(http.StatusCreated, gin.H{"message": "http://localhost:8080/" + shortUrl})
 }
 
 func redirect(ctx *gin.Context) {
 
-	shortUrl := ctx.Param("id")
+	shortURL := ctx.Param("id")
 
-	if urlStore[shortUrl] != "" {
-		ctx.Header("Location", urlStore[shortUrl])
+	if urlStore[shortURL] != "" {
+		ctx.Header("Location", urlStore[shortURL])
 		ctx.IndentedJSON(http.StatusTemporaryRedirect, gin.H{})
 	} else {
 		ctx.IndentedJSON(http.StatusBadRequest, gin.H{})
