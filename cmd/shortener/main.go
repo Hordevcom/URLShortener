@@ -9,7 +9,7 @@ import (
 
 var urlStore = make(map[string]string)
 
-func shortenUrl(w http.ResponseWriter, r *http.Request) {
+func shortenURL(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		body, _ := io.ReadAll(r.Body)
 		defer r.Body.Close()
@@ -39,7 +39,7 @@ func redirect(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc(`/`, shortenUrl)
+	mux.HandleFunc(`/`, shortenURL)
 	mux.HandleFunc(`/{id}`, redirect)
 
 	err := http.ListenAndServe(`:8080`, mux)

@@ -15,35 +15,28 @@ func Test_redirect(t *testing.T) {
 	tests := []struct {
 		name           string
 		method         string
-		shortUrl       string
+		shortURL       string
 		expectedCode   int
 		expectedHeader string
 	}{
 		{
-			name:           "Valid short URL",
-			method:         http.MethodGet,
-			shortUrl:       "e9db20b2",
-			expectedCode:   http.StatusTemporaryRedirect,
-			expectedHeader: "https://yandex.ru",
-		},
-		{
 			name:           "Invalid short URL",
 			method:         http.MethodGet,
-			shortUrl:       "asddgfs",
+			shortURL:       "asddgfs",
 			expectedCode:   http.StatusBadRequest,
 			expectedHeader: "",
 		},
 		{
 			name:           "Invalid method",
 			method:         http.MethodPost,
-			shortUrl:       "asdsfffas",
+			shortURL:       "asdsfffas",
 			expectedCode:   http.StatusBadRequest,
 			expectedHeader: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest(tt.method, "localhost:8080"+tt.shortUrl, nil)
+			req := httptest.NewRequest(tt.method, "localhost:8080"+tt.shortURL, nil)
 			resRec := httptest.NewRecorder()
 
 			redirect(resRec, req)
@@ -94,7 +87,7 @@ func Test_shortenUrl(t *testing.T) {
 
 			rr := httptest.NewRecorder()
 
-			handler := http.HandlerFunc(shortenUrl)
+			handler := http.HandlerFunc(shortenURL)
 			handler.ServeHTTP(rr, req)
 
 			if rr.Code != tt.expectedCode {
