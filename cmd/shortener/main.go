@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/md5"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -10,11 +11,13 @@ var urlStore = make(map[string]string)
 
 func shortenUrl(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
-		url := r.FormValue("url")
-		shortUrl := fmt.Sprintf("%x", md5.Sum([]byte(url)))[:8]
-		urlStore[shortUrl] = url
+		body, _ := io.ReadAll(r.Body)
+		defer r.Body.Close()
+		shortURL := fmt.Sprintf("%x", md5.Sum([]byte(body)))[:8]
+		urlStore[shortURL] = string(body)
+		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte("http://localhost:8080/" + shortUrl))
+		w.Write([]byte("http://localhost:8080/" + shortURL))
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
 	}
@@ -22,18 +25,16 @@ func shortenUrl(w http.ResponseWriter, r *http.Request) {
 
 func redirect(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		shortUrl := r.PathValue("id")
-
-		if urlStore[shortUrl] != "" {
+		shortURL := r.PathValue("id")
+		if urlStore[shortURL] != "" {
+			w.Header().Set("Location", urlStore[shortURL])
 			w.WriteHeader(http.StatusTemporaryRedirect)
-			w.Write([]byte("Location: " + urlStore[shortUrl]))
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
 	}
-
 }
 
 func main() {
