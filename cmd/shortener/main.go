@@ -27,7 +27,7 @@ func shortenURL(ctx *gin.Context) {
 
 	shortURL := fmt.Sprintf("%x", md5.Sum([]byte(url)))[:8]
 	urlStore[shortURL] = string(url)
-	ctx.String(http.StatusCreated, "http://"+conf.Host+"/"+shortURL)
+	ctx.String(http.StatusCreated, conf.Host+"/"+shortURL)
 }
 
 func redirect(ctx *gin.Context) {
