@@ -10,7 +10,7 @@ type Config struct {
 func GetCLParams() Config {
 	var conf Config
 	flag.StringVar(&conf.ServerAdress, "a", "localhost:8080", "server adress")
-	flag.StringVar(&conf.Host, "b", "localhost:8080", "host")
+	flag.StringVar(&conf.Host, "b", "http://localhost:8080", "host")
 
 	flag.Parse()
 	return conf
