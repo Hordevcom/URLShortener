@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/Hordevcom/URLShortener/internal/config"
 	"github.com/Hordevcom/URLShortener/internal/storage"
@@ -31,7 +32,11 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "url param required", http.StatusBadRequest)
 		return
 	}
+	_, err = url.ParseRequestURI(string(body))
 
+	if err != nil {
+		http.Error(w, "Correct url required", http.StatusBadRequest)
+	}
 	shortURL := fmt.Sprintf("%x", md5.Sum(body))[:8]
 	a.storage.Set(shortURL, string(body))
 

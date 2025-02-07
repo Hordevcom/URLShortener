@@ -12,7 +12,7 @@ type Config struct {
 	Host         string `env:"BASE_URL"`
 }
 
-func GetCLParams() Config {
+func NewConfig() Config {
 	var conf Config
 	err := env.Parse(&conf)
 

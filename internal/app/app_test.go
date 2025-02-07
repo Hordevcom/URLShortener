@@ -65,7 +65,7 @@ func TestRedirect(t *testing.T) {
 func TestShortenURL(t *testing.T) {
 	m1 := storage.NewStorage()
 	m1.Set("abc123", "https://example.com")
-	conf := config.GetCLParams()
+	conf := config.NewConfig()
 	app := &App{
 		storage: m1,
 		config:  conf,

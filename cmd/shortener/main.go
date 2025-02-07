@@ -11,8 +11,8 @@ import (
 
 func main() {
 	strg := storage.NewStorage()
-	conf := config.GetCLParams()
+	conf := config.NewConfig()
 	app := app.NewApp(strg, conf)
-	router := routes.RegisterRouters(*app)
+	router := routes.NewRouter(*app)
 	http.ListenAndServe(conf.ServerAdress, router)
 }
