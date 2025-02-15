@@ -15,10 +15,14 @@ import (
 type App struct {
 	storage     storage.Storage
 	config      config.Config
-	JSONStorage storage.JsonStorage
+	JSONStorage storage.JSONStorage
 }
 
-func NewApp(storage storage.Storage, config config.Config, JSONStorage storage.JsonStorage) *App {
+type Response struct {
+	Result string `json:"result"`
+}
+
+func NewApp(storage storage.Storage, config config.Config, JSONStorage storage.JSONStorage) *App {
 	return &App{storage: storage, config: config}
 }
 
@@ -53,8 +57,13 @@ func (a *App) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
 	shortURL := fmt.Sprintf("%x", md5.Sum([]byte(a.JSONStorage.Get())))[:8]
 	a.storage.Set(shortURL, a.JSONStorage.Get())
 
+	response := Response{
+		Result: a.config.Host + "/" + shortURL,
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	fmt.Fprintf(w, "%s/%s", a.config.Host, shortURL)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
 func (a *App) Redirect(w http.ResponseWriter, r *http.Request) {
