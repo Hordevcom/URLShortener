@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -111,4 +112,65 @@ func TestShortenURL(t *testing.T) {
 			t.Errorf("expected response body %q, got %q", expectedResponse, rr.Body.String())
 		}
 	})
+}
+
+type RequestPayload struct {
+	URL string `json:"url"`
+}
+
+func TestShortenURLJSON(t *testing.T) {
+	app := &App{
+		storage:     storage.NewStorage(),
+		JSONStorage: *storage.NewJSONStorage(),
+		config:      config.Config{Host: "http://localhost"},
+	}
+
+	tests := []struct {
+		name           string
+		requestBody    string
+		expectedStatus int
+		expectedResult string
+	}{
+		{
+			name:           "Valid URL",
+			requestBody:    `{"url":"https://example.com"}`,
+			expectedStatus: http.StatusCreated,
+			expectedResult: "https://example.com",
+		},
+		{
+			name:           "Invalid JSON",
+			requestBody:    `{"url":}`,
+			expectedStatus: http.StatusBadRequest,
+			expectedResult: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodPost, "/shorten", bytes.NewBufferString(tt.requestBody))
+			req.Header.Set("Content-Type", "application/json")
+			w := httptest.NewRecorder()
+
+			app.ShortenURLJSON(w, req)
+			resp := w.Result()
+			defer resp.Body.Close()
+
+			if resp.StatusCode != tt.expectedStatus {
+				t.Errorf("expected status %d, got %d", tt.expectedStatus, resp.StatusCode)
+			}
+
+			if resp.StatusCode == http.StatusCreated {
+				var res Response
+				if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
+					t.Errorf("failed to decode response: %v", err)
+				}
+
+				expectedShort := fmt.Sprintf("%x", md5.Sum([]byte(tt.expectedResult)))[:8]
+				expectedURL := app.config.Host + "/" + expectedShort
+				if res.Result != expectedURL {
+					t.Errorf("expected result %s, got %s", expectedURL, res.Result)
+				}
+			}
+		})
+	}
 }
