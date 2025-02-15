@@ -61,9 +61,12 @@ func (a *App) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
 		Result: a.config.Host + "/" + shortURL,
 	}
 
-	w.WriteHeader(http.StatusCreated)
+	JSONResponse, _ := json.Marshal(response)
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
+	w.WriteHeader(http.StatusCreated)
+	w.Write(JSONResponse)
+
 }
 
 func (a *App) Redirect(w http.ResponseWriter, r *http.Request) {
