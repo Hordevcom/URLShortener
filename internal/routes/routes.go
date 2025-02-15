@@ -10,6 +10,7 @@ import (
 func NewRouter(app app.App, sugar zap.SugaredLogger) *chi.Mux {
 	router := chi.NewRouter()
 	router.Post("/", logging.WithLogging(app.ShortenURL, sugar))
+	router.Post("/api/shorten", logging.WithLogging(app.ShortenURLJSON, sugar))
 	router.Get("/{id}", logging.WithLogging(app.Redirect, sugar))
 
 	return router

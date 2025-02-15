@@ -2,6 +2,7 @@ package app
 
 import (
 	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -12,11 +13,12 @@ import (
 )
 
 type App struct {
-	storage storage.Storage
-	config  config.Config
+	storage     storage.Storage
+	config      config.Config
+	JSONStorage storage.JsonStorage
 }
 
-func NewApp(storage storage.Storage, config config.Config) *App {
+func NewApp(storage storage.Storage, config config.Config, JSONStorage storage.JsonStorage) *App {
 	return &App{storage: storage, config: config}
 }
 
@@ -34,6 +36,22 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 
 	shortURL := fmt.Sprintf("%x", md5.Sum(body))[:8]
 	a.storage.Set(shortURL, string(body))
+
+	w.WriteHeader(http.StatusCreated)
+	fmt.Fprintf(w, "%s/%s", a.config.Host, shortURL)
+}
+
+func (a *App) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
+	// extract string from json
+	err := json.NewDecoder(r.Body).Decode(&a.JSONStorage)
+
+	if err != nil {
+		http.Error(w, "Bad JSON url", http.StatusBadRequest)
+		return
+	}
+
+	shortURL := fmt.Sprintf("%x", md5.Sum([]byte(a.JSONStorage.Get())))[:8]
+	a.storage.Set(shortURL, a.JSONStorage.Get())
 
 	w.WriteHeader(http.StatusCreated)
 	fmt.Fprintf(w, "%s/%s", a.config.Host, shortURL)
