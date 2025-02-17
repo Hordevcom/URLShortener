@@ -16,7 +16,7 @@ func main() {
 	JSONStorage := storage.NewJSONStorage()
 	conf := config.NewConfig()
 	app := app.NewApp(strg, conf, *JSONStorage)
-	router := routes.NewRouter(*app, logger)
+	router := routes.NewRouter(*app)
 
 	logger.Infow("Starting server", "addr", conf.ServerAdress)
 	http.ListenAndServe(conf.ServerAdress, router)
