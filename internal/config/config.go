@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/Hordevcom/URLShortener/internal/middleware/logging"
 	"github.com/caarlos0/env/v11"
 )
 
@@ -14,8 +15,11 @@ type Config struct {
 }
 
 func NewConfig() Config {
+	logger := logging.NewLogger()
 	var conf Config
 	err := env.Parse(&conf)
+
+	logger.Infow(conf.FilePath)
 
 	if err != nil {
 		fmt.Println(err)
