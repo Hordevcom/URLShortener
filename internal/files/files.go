@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"strconv"
 
 	"github.com/Hordevcom/URLShortener/internal/config"
@@ -57,7 +58,14 @@ func (f *File) UpdateFile(jsonStruct JSONStruct) {
 }
 
 func (f *File) ReadFile(strg storage.Storage) {
+
 	var jsonStrct JSONStruct
+	err := os.MkdirAll(filepath.Dir(f.config.FilePath), os.ModePerm)
+
+	if err != nil {
+		return
+	}
+
 	file, err := os.OpenFile(f.config.FilePath, os.O_RDONLY|os.O_CREATE, 06666)
 
 	if err != nil {
