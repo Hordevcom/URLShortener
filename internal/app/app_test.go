@@ -11,12 +11,17 @@ import (
 	"testing"
 
 	"github.com/Hordevcom/URLShortener/internal/config"
+	"github.com/Hordevcom/URLShortener/internal/files"
+	"github.com/Hordevcom/URLShortener/internal/middleware/logging"
 	"github.com/Hordevcom/URLShortener/internal/storage"
 	"github.com/go-chi/chi/v5"
 )
 
 func TestRedirect(t *testing.T) {
-	m1 := storage.NewStorage()
+	logger := logging.NewLogger()
+	conf := config.NewConfig()
+	file := files.NewFile(conf, logger)
+	m1 := storage.NewStorage(*file)
 	m1.Set("abc123", "https://example.com")
 	app := &App{storage: m1}
 
@@ -64,9 +69,11 @@ func TestRedirect(t *testing.T) {
 }
 
 func TestShortenURL(t *testing.T) {
-	m1 := storage.NewStorage()
-	m1.Set("abc123", "https://example.com")
+	logger := logging.NewLogger()
 	conf := config.NewConfig()
+	file := files.NewFile(conf, logger)
+	m1 := storage.NewStorage(*file)
+	m1.Set("abc123", "https://example.com")
 	app := &App{
 		storage: m1,
 		config:  conf,
@@ -119,8 +126,11 @@ type RequestPayload struct {
 }
 
 func TestShortenURLJSON(t *testing.T) {
+	logger := logging.NewLogger()
+	conf := config.NewConfig()
+	file := files.NewFile(conf, logger)
 	app := &App{
-		storage:     storage.NewStorage(),
+		storage:     storage.NewStorage(*file),
 		JSONStorage: *storage.NewJSONStorage(),
 		config:      config.Config{Host: "http://localhost"},
 	}

@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/Hordevcom/URLShortener/internal/config"
+	"github.com/Hordevcom/URLShortener/internal/files"
 	"github.com/Hordevcom/URLShortener/internal/storage"
 	"github.com/go-chi/chi/v5"
 )
@@ -39,7 +40,15 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	shortURL := fmt.Sprintf("%x", md5.Sum(body))[:8]
-	a.storage.Set(shortURL, string(body))
+
+	if _, exist := a.storage.Get(shortURL); !exist {
+		a.storage.Set(shortURL, string(body))
+
+		files.UpdateFile(files.JSONStruct{
+			ShortURL:    shortURL,
+			OriginalURL: string(body),
+		})
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	fmt.Fprintf(w, "%s/%s", a.config.Host, shortURL)
@@ -55,7 +64,14 @@ func (a *App) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
 	}
 
 	shortURL := fmt.Sprintf("%x", md5.Sum([]byte(a.JSONStorage.Get())))[:8]
-	a.storage.Set(shortURL, a.JSONStorage.Get())
+
+	if _, exist := a.storage.Get(shortURL); !exist {
+		a.storage.Set(shortURL, a.JSONStorage.Get())
+		files.UpdateFile(files.JSONStruct{
+			ShortURL:    shortURL,
+			OriginalURL: a.JSONStorage.Get(),
+		})
+	}
 
 	response := Response{
 		Result: a.config.Host + "/" + shortURL,

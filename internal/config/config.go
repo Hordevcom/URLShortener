@@ -10,6 +10,7 @@ import (
 type Config struct {
 	ServerAdress string `env:"SERVER_ADDRESS"`
 	Host         string `env:"BASE_URL"`
+	FilePath     string `env:"FILE_STORAGE_PATH"`
 }
 
 func NewConfig() Config {
@@ -20,12 +21,13 @@ func NewConfig() Config {
 		fmt.Println(err)
 	}
 
-	if conf.Host != "" && conf.ServerAdress != "" {
+	if conf.Host != "" && conf.ServerAdress != "" && conf.FilePath != "" {
 		return conf
 	}
 
 	flag.StringVar(&conf.ServerAdress, "a", "localhost:8080", "server adress")
 	flag.StringVar(&conf.Host, "b", "http://localhost:8080", "host")
+	flag.StringVar(&conf.FilePath, "f", "storage.txt", "path to file")
 
 	flag.Parse()
 	return conf

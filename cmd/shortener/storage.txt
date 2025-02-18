@@ -1,0 +1,2 @@
+{"uuid":"1","short_url":"a1985fb2","original_url":"https://n345dex.ru"}
+{"uuid":"2","short_url":"7b334dde","original_url":"https://nadex.ru"}
