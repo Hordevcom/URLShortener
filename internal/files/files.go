@@ -34,6 +34,13 @@ func (f *File) UpdateFile(jsonStruct JSONStruct) {
 
 	f.UUID++
 	jsonStruct.UUID = strconv.Itoa(f.UUID)
+
+	err := os.MkdirAll(filepath.Dir(f.config.FilePath), os.ModePerm)
+
+	if err != nil {
+		return
+	}
+
 	file, err := os.OpenFile(f.config.FilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	if err != nil {
