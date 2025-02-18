@@ -22,17 +22,16 @@ func NewConfig() Config {
 		fmt.Println(err)
 	}
 
+	if conf.Host != "" && conf.ServerAdress != "" {
+		return conf
+	}
+
 	if conf.FilePath == "" {
 		flag.StringVar(&conf.FilePath, "f", "storage.txt", "path to file")
 	}
 
-	if conf.Host == "" {
-		flag.StringVar(&conf.Host, "b", "http://localhost:8080", "host")
-	}
-
-	if conf.ServerAdress == "" {
-		flag.StringVar(&conf.ServerAdress, "a", "localhost:8080", "server adress")
-	}
+	flag.StringVar(&conf.ServerAdress, "a", "localhost:8080", "server adress")
+	flag.StringVar(&conf.Host, "b", "http://localhost:8080", "host")
 
 	flag.Parse()
 	return conf
