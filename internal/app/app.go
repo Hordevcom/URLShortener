@@ -17,14 +17,15 @@ type App struct {
 	storage     storage.Storage
 	config      config.Config
 	JSONStorage storage.JSONStorage
+	file        files.File
 }
 
 type Response struct {
 	Result string `json:"result"`
 }
 
-func NewApp(storage storage.Storage, config config.Config, JSONStorage storage.JSONStorage) *App {
-	return &App{storage: storage, config: config}
+func NewApp(storage storage.Storage, config config.Config, JSONStorage storage.JSONStorage, file files.File) *App {
+	return &App{storage: storage, config: config, file: file}
 }
 
 func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +45,7 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 	if _, exist := a.storage.Get(shortURL); !exist {
 		a.storage.Set(shortURL, string(body))
 
-		files.UpdateFile(files.JSONStruct{
+		a.file.UpdateFile(files.JSONStruct{
 			ShortURL:    shortURL,
 			OriginalURL: string(body),
 		})
@@ -67,7 +68,7 @@ func (a *App) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
 
 	if _, exist := a.storage.Get(shortURL); !exist {
 		a.storage.Set(shortURL, a.JSONStorage.Get())
-		files.UpdateFile(files.JSONStruct{
+		a.file.UpdateFile(files.JSONStruct{
 			ShortURL:    shortURL,
 			OriginalURL: a.JSONStorage.Get(),
 		})

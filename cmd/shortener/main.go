@@ -15,9 +15,10 @@ func main() {
 	logger := logging.NewLogger()
 	JSONStorage := storage.NewJSONStorage()
 	conf := config.NewConfig()
-	file := files.NewFile(conf, logger)
-	strg := storage.NewStorage(*file)
-	app := app.NewApp(strg, conf, *JSONStorage)
+	strg := storage.NewStorage()
+	file := files.NewFile(conf, logger, strg)
+
+	app := app.NewApp(strg, conf, *JSONStorage, *file)
 	router := routes.NewRouter(*app)
 
 	logger.Infow("Starting server", "addr", conf.ServerAdress)
