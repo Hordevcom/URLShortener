@@ -36,7 +36,6 @@ func (f *File) UpdateFile(jsonStruct JSONStruct) {
 	file, err := os.OpenFile(f.config.FilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	if err != nil {
-		f.logger.Errorw("Failed to create file")
 		return
 	}
 	defer file.Close()
