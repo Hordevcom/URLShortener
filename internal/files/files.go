@@ -18,9 +18,9 @@ type JSONStruct struct {
 }
 
 type File struct {
-	config  config.Config
-	logger  zap.SugaredLogger
-	storage storage.MapStorage
+	config config.Config
+	logger zap.SugaredLogger
+	UUID   int
 }
 
 func NewFile(config config.Config, logger zap.SugaredLogger, storage storage.Storage) *File {
@@ -29,13 +29,11 @@ func NewFile(config config.Config, logger zap.SugaredLogger, storage storage.Sto
 	return f
 }
 
-var UUID int = 0
-
 func (f *File) UpdateFile(jsonStruct JSONStruct) {
 
-	UUID++
-	jsonStruct.UUID = strconv.Itoa(UUID)
-	file, err := os.OpenFile("storage.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f.UUID++
+	jsonStruct.UUID = strconv.Itoa(f.UUID)
+	file, err := os.OpenFile(f.config.FilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	if err != nil {
 		f.logger.Errorw("Failed to create file")
@@ -66,6 +64,9 @@ func (f *File) ReadFile(strg storage.Storage) {
 	if err != nil {
 		return
 	}
+
+	f.logger.Infow("created file in direction: " + f.config.FilePath)
+
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
@@ -74,5 +75,5 @@ func (f *File) ReadFile(strg storage.Storage) {
 		strg.Set(jsonStrct.ShortURL, jsonStrct.OriginalURL)
 	}
 
-	UUID, _ = strconv.Atoi(jsonStrct.UUID)
+	f.UUID, _ = strconv.Atoi(jsonStrct.UUID)
 }
