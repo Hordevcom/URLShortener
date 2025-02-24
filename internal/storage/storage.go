@@ -21,3 +21,19 @@ func (s *MapStorage) Get(key string) (string, bool) {
 	value, exist := s.data[key]
 	return value, exist
 }
+
+type JSONStorage struct {
+	URL string `json:"url"`
+}
+
+func NewJSONStorage() *JSONStorage {
+	return &JSONStorage{URL: ""}
+}
+
+func (s *JSONStorage) Set(key, value string) {
+	s.URL = value
+}
+
+func (s *JSONStorage) Get() string {
+	return s.URL
+}
