@@ -68,8 +68,6 @@ func NewLogger() zap.SugaredLogger {
 		panic(err)
 	}
 
-	defer logger.Sync()
-
 	sugar = *logger.Sugar()
 
 	return sugar
