@@ -2,6 +2,7 @@ package app
 
 import (
 	"crypto/md5"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,6 +12,8 @@ import (
 	"github.com/Hordevcom/URLShortener/internal/files"
 	"github.com/Hordevcom/URLShortener/internal/storage"
 	"github.com/go-chi/chi/v5"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type App struct {
@@ -93,4 +96,24 @@ func (a *App) Redirect(w http.ResponseWriter, r *http.Request) {
 	} else {
 		http.Error(w, "URL not found", http.StatusBadRequest)
 	}
+}
+
+func (a *App) ConnectToDB(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("pgx", a.config.DatabaseDsn)
+
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Failed connect to database", http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	err = db.Ping()
+
+	if err != nil {
+		http.Error(w, "Failed ping to database", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

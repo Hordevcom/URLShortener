@@ -22,5 +22,9 @@ func main() {
 	router := routes.NewRouter(*app)
 
 	logger.Infow("Starting server", "addr", conf.ServerAdress)
-	http.ListenAndServe(conf.ServerAdress, router)
+	err := http.ListenAndServe(conf.ServerAdress, router)
+
+	if err != nil {
+		panic(err)
+	}
 }
