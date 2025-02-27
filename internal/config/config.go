@@ -11,6 +11,7 @@ type Config struct {
 	ServerAdress string `env:"SERVER_ADDRESS"`
 	Host         string `env:"BASE_URL"`
 	FilePath     string `env:"FILE_STORAGE_PATH"`
+	DatabaseDsn  string `env:"DATABASE_DSN"`
 }
 
 func NewConfig() Config {
@@ -24,6 +25,10 @@ func NewConfig() Config {
 
 	if conf.Host != "" && conf.ServerAdress != "" {
 		return conf
+	}
+
+	if conf.DatabaseDsn == "" {
+		flag.StringVar(&conf.DatabaseDsn, "d", "postgres://postgres:1@localhost:5432/postgres", "database dsn")
 	}
 
 	if conf.FilePath == "" {
