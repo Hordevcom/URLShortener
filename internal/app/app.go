@@ -121,7 +121,7 @@ func (a *App) ConnectToDB(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (a *App) addDataToDB(shortUrl, originalUrl string) {
+func (a *App) addDataToDB(shortURL, originalURL string) {
 	db, err := sql.Open("pgx", a.config.DatabaseDsn)
 
 	if err != nil {
@@ -148,7 +148,7 @@ func (a *App) addDataToDB(shortUrl, originalUrl string) {
 	}
 
 	query := `INSERT INTO urls VALUES ($1, $2)`
-	_, err = db.Exec(query, shortUrl, originalUrl)
+	_, err = db.Exec(query, shortURL, originalURL)
 	if err != nil {
 		panic(err)
 	}
