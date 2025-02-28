@@ -52,6 +52,7 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 			ShortURL:    shortURL,
 			OriginalURL: string(body),
 		})
+		a.addDataToDB(shortURL, string(body))
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -75,6 +76,8 @@ func (a *App) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
 			ShortURL:    shortURL,
 			OriginalURL: a.JSONStorage.Get(),
 		})
+		a.addDataToDB(shortURL, a.JSONStorage.Get())
+
 	}
 
 	response := Response{
@@ -116,4 +119,37 @@ func (a *App) ConnectToDB(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (a *App) addDataToDB(shortUrl, originalUrl string) {
+	db, err := sql.Open("pgx", a.config.DatabaseDsn)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer db.Close()
+
+	err = db.Ping()
+
+	if err != nil {
+		return
+	}
+
+	createTableSQL := `
+	CREATE TABLE IF NOT EXISTS urls (
+		short_url TEXT NOT NULL PRIMARY KEY,
+		original_url TEXT NOT NULL
+	);`
+
+	_, err = db.Exec(createTableSQL)
+	if err != nil {
+		panic(err)
+	}
+
+	query := `INSERT INTO urls VALUES ($1, $2)`
+	_, err = db.Exec(query, shortUrl, originalUrl)
+	if err != nil {
+		panic(err)
+	}
 }
