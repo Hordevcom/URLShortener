@@ -26,7 +26,7 @@ type File struct {
 
 func NewFile(config config.Config, logger zap.SugaredLogger, storage storage.Storage) *File {
 	f := &File{config: config, logger: logger}
-	f.ReadFile(storage)
+	// f.ReadFile(storage)
 	return f
 }
 

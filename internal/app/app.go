@@ -2,7 +2,6 @@ package app
 
 import (
 	"crypto/md5"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/Hordevcom/URLShortener/internal/config"
 	"github.com/Hordevcom/URLShortener/internal/files"
+	"github.com/Hordevcom/URLShortener/internal/routes/pg"
 	"github.com/Hordevcom/URLShortener/internal/storage"
 	"github.com/go-chi/chi/v5"
 
@@ -21,14 +21,17 @@ type App struct {
 	config      config.Config
 	JSONStorage storage.JSONStorage
 	file        files.File
+	pg          *pg.PGDB
 }
 
 type Response struct {
 	Result string `json:"result"`
 }
 
-func NewApp(storage storage.Storage, config config.Config, JSONStorage storage.JSONStorage, file files.File) *App {
-	return &App{storage: storage, config: config, file: file}
+func NewApp(storage storage.Storage, config config.Config, JSONStorage storage.JSONStorage, file files.File, pg *pg.PGDB) *App {
+	app := &App{storage: storage, config: config, file: file, pg: pg}
+	app.DownloadData()
+	return app
 }
 
 func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
@@ -101,55 +104,25 @@ func (a *App) Redirect(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *App) ConnectToDB(w http.ResponseWriter, r *http.Request) {
-	db, err := sql.Open("pgx", a.config.DatabaseDsn)
-
-	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "Failed connect to database", http.StatusInternalServerError)
-		return
-	}
+func (a *App) DBPing(w http.ResponseWriter, r *http.Request) {
+	db, _ := a.pg.ConnectToDB()
 	defer db.Close()
-
-	err = db.Ping()
-
-	if err != nil {
-		http.Error(w, "Failed ping to database", http.StatusInternalServerError)
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
 }
 
 func (a *App) addDataToDB(shortURL, originalURL string) {
-	db, err := sql.Open("pgx", a.config.DatabaseDsn)
+	db, _ := a.pg.ConnectToDB()
+	defer db.Close()
+	a.pg.CreateTable(db)
+	a.pg.AddValuesToDB(db, shortURL, originalURL)
+}
+
+func (a *App) DownloadData() {
+	db, err := a.pg.ConnectToDB()
 
 	if err != nil {
-		fmt.Println(err)
-		return
+		a.file.ReadFile(a.storage)
 	}
 	defer db.Close()
-
-	err = db.Ping()
-
-	if err != nil {
-		return
-	}
-
-	createTableSQL := `
-	CREATE TABLE IF NOT EXISTS urls (
-		short_url TEXT NOT NULL PRIMARY KEY,
-		original_url TEXT NOT NULL
-	);`
-
-	_, err = db.Exec(createTableSQL)
-	if err != nil {
-		panic(err)
-	}
-
-	query := `INSERT INTO urls VALUES ($1, $2)`
-	_, err = db.Exec(query, shortURL, originalURL)
-	if err != nil {
-		panic(err)
-	}
+	a.pg.ReadDataFromDB(db)
 }
