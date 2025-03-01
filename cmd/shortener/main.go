@@ -25,6 +25,6 @@ func main() {
 	err := http.ListenAndServe(conf.ServerAdress, router)
 
 	if err != nil {
-		panic(err)
+		logger.Fatalw("Server error: ", err)
 	}
 }
