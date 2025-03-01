@@ -24,7 +24,7 @@ func main() {
 	router := routes.NewRouter(*app)
 
 	logger.Infow("Starting server", "addr", conf.ServerAdress)
-	err := http.ListenAndServe("localhost:8081", router)
+	err := http.ListenAndServe(conf.ServerAdress, router)
 
 	if err != nil {
 		logger.Fatalw("create server error: ", err)
