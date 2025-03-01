@@ -9,7 +9,8 @@ import (
 
 	"github.com/Hordevcom/URLShortener/internal/config"
 	"github.com/Hordevcom/URLShortener/internal/files"
-	"github.com/Hordevcom/URLShortener/internal/pg"
+	"github.com/Hordevcom/URLShortener/internal/storage/pg"
+
 	"github.com/Hordevcom/URLShortener/internal/storage"
 
 	"github.com/go-chi/chi/v5"
