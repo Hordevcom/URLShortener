@@ -27,6 +27,6 @@ func main() {
 	err := http.ListenAndServe(conf.ServerAdress, router)
 
 	if err != nil {
-		logger.Fatalw("create server error: ", err)
+		logger.Fatalw("create server error:1 ", err)
 	}
 }
