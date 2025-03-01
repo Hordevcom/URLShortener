@@ -373,7 +373,6 @@ jobs:
           github.head_ref == 'iter23' ||
           github.head_ref == 'iter24'
         run: |
-          SERVER_PORT=$(random unused-port)
           shortenertestbeta -test.v -test.run=^TestIteration12$ \
               -binary-path=cmd/shortener/shortener \
               -database-dsn='postgres://postgres:postgres@postgres:5432/praktikum?sslmode=disable'
