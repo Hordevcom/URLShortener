@@ -7,9 +7,9 @@ import (
 	"github.com/Hordevcom/URLShortener/internal/config"
 	"github.com/Hordevcom/URLShortener/internal/files"
 	"github.com/Hordevcom/URLShortener/internal/middleware/logging"
+	"github.com/Hordevcom/URLShortener/internal/pg"
 	"github.com/Hordevcom/URLShortener/internal/routes"
 	"github.com/Hordevcom/URLShortener/internal/storage"
-	"github.com/Hordevcom/URLShortener/internal/storage/pg"
 )
 
 func main() {
@@ -27,5 +27,6 @@ func main() {
 
 	if err != nil {
 		logger.Fatalw("create server error: ", err)
+		logger.Info()
 	}
 }
