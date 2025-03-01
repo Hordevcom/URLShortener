@@ -2,6 +2,7 @@ package app
 
 import (
 	"crypto/md5"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,6 +12,8 @@ import (
 	"github.com/Hordevcom/URLShortener/internal/files"
 	"github.com/Hordevcom/URLShortener/internal/storage"
 	"github.com/go-chi/chi/v5"
+
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type App struct {
@@ -49,6 +52,7 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 			ShortURL:    shortURL,
 			OriginalURL: string(body),
 		})
+		a.addDataToDB(shortURL, string(body))
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -72,6 +76,8 @@ func (a *App) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
 			ShortURL:    shortURL,
 			OriginalURL: a.JSONStorage.Get(),
 		})
+		a.addDataToDB(shortURL, a.JSONStorage.Get())
+
 	}
 
 	response := Response{
@@ -92,5 +98,58 @@ func (a *App) Redirect(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, originalURL, http.StatusTemporaryRedirect)
 	} else {
 		http.Error(w, "URL not found", http.StatusBadRequest)
+	}
+}
+
+func (a *App) ConnectToDB(w http.ResponseWriter, r *http.Request) {
+	db, err := sql.Open("pgx", a.config.DatabaseDsn)
+
+	if err != nil {
+		fmt.Println(err)
+		http.Error(w, "Failed connect to database", http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	err = db.Ping()
+
+	if err != nil {
+		http.Error(w, "Failed ping to database", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (a *App) addDataToDB(shortURL, originalURL string) {
+	db, err := sql.Open("pgx", a.config.DatabaseDsn)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer db.Close()
+
+	err = db.Ping()
+
+	if err != nil {
+		return
+	}
+
+	createTableSQL := `
+	CREATE TABLE IF NOT EXISTS urls (
+		short_url TEXT NOT NULL PRIMARY KEY,
+		original_url TEXT NOT NULL
+	);`
+
+	_, err = db.Exec(createTableSQL)
+	if err != nil {
+		panic(err)
+	}
+
+	query := `INSERT INTO urls VALUES ($1, $2)`
+	_, err = db.Exec(query, shortURL, originalURL)
+	if err != nil {
+		panic(err)
 	}
 }
