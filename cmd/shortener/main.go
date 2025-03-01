@@ -8,8 +8,8 @@ import (
 	"github.com/Hordevcom/URLShortener/internal/files"
 	"github.com/Hordevcom/URLShortener/internal/middleware/logging"
 	"github.com/Hordevcom/URLShortener/internal/routes"
-	"github.com/Hordevcom/URLShortener/internal/routes/pg"
 	"github.com/Hordevcom/URLShortener/internal/storage"
+	"github.com/Hordevcom/URLShortener/internal/storage/pg"
 )
 
 func main() {

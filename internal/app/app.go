@@ -9,12 +9,22 @@ import (
 
 	"github.com/Hordevcom/URLShortener/internal/config"
 	"github.com/Hordevcom/URLShortener/internal/files"
-	"github.com/Hordevcom/URLShortener/internal/routes/pg"
 	"github.com/Hordevcom/URLShortener/internal/storage"
+	"github.com/Hordevcom/URLShortener/internal/storage/pg"
 	"github.com/go-chi/chi/v5"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
+
+type ShortenRequest struct {
+	CorrelationID string `json:"correlation_id"`
+	OriginalURL   string `json:"original_url"`
+}
+
+type ShortenResponce struct {
+	CorrelationID string `json:"correlation_id"`
+	ShortURL      string `json:"short_url"`
+}
 
 type App struct {
 	storage     storage.Storage
@@ -32,6 +42,45 @@ func NewApp(storage storage.Storage, config config.Config, JSONStorage storage.J
 	app := &App{storage: storage, config: config, file: file, pg: pg}
 	app.DownloadData()
 	return app
+}
+
+func (a *App) BatchShortenURL(w http.ResponseWriter, r *http.Request) {
+	var requests []ShortenRequest
+
+	err := json.NewDecoder(r.Body).Decode(&requests)
+
+	if err != nil {
+		http.Error(w, "Bad JSON data", http.StatusBadRequest)
+		return
+	}
+
+	if len(requests) == 0 {
+		http.Error(w, "Batch cannot be empty", http.StatusBadRequest)
+		return
+	}
+
+	db, err := a.pg.ConnectToDB()
+
+	if err != nil {
+		http.Error(w, "Problem with connecting to DB", http.StatusInternalServerError)
+		return
+	}
+	var responces []ShortenResponce
+	for _, req := range requests {
+		shortURL := fmt.Sprintf("%x", md5.Sum([]byte(req.OriginalURL)))[:8]
+		responces = append(responces, ShortenResponce{
+			CorrelationID: req.CorrelationID,
+			ShortURL:      shortURL,
+		})
+
+		if _, exist := a.storage.Get(shortURL); !exist {
+			a.storage.Set(shortURL, req.OriginalURL)
+			a.pg.AddValuesToDB(db, shortURL, req.OriginalURL)
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(responces)
 }
 
 func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
