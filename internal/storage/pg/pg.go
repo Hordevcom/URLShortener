@@ -66,6 +66,7 @@ func (p *PGDB) ReadDataFromDB(db *sql.DB) {
 	rows, err := db.QueryContext(context.Background(),
 		"SELECT short_url, original_url FROM urls")
 
+	rows.Err()
 	if err != nil {
 		panic(err)
 	}
@@ -83,5 +84,10 @@ func (p *PGDB) ReadDataFromDB(db *sql.DB) {
 
 		p.storage.Set(shortURL, origURL)
 	}
+
+	if err := rows.Err(); err != nil {
+		p.logger.Fatalw("Iteration result error", err)
+	}
+
 	p.logger.Infow("Read data from db completed")
 }

@@ -35,8 +35,8 @@ func NewConfig() Config {
 		flag.StringVar(&conf.FilePath, "f", "storage.txt", "path to file")
 	}
 
-	flag.StringVar(&conf.ServerAdress, "a", "localhost:8080", "server adress")
-	flag.StringVar(&conf.Host, "b", "http://localhost:8080", "host")
+	flag.StringVar(&conf.ServerAdress, "a", "localhost:8081", "server adress")
+	flag.StringVar(&conf.Host, "b", "http://localhost:8081", "host")
 
 	flag.Parse()
 	return conf
