@@ -106,7 +106,7 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 			ShortURL:    shortURL,
 			OriginalURL: string(body),
 		})
-		// a.addDataToDB(shortURL, string(body))
+		a.addDataToDB(shortURL, string(body))
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -171,9 +171,13 @@ func (a *App) InitDB() {
 }
 
 func (a *App) addDataToDB(shortURL, originalURL string) {
-	db, _ := a.pg.ConnectToDB()
+	db, err := a.pg.ConnectToDB()
+
+	if err != nil {
+		panic(err)
+	}
 	defer db.Close()
-	// a.pg.CreateTable(db)
+	a.pg.CreateTable(db)
 	a.pg.AddValuesToDB(db, shortURL, originalURL)
 }
 

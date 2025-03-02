@@ -30,5 +30,5 @@ func main() {
 		logger.Fatalw("create server error:1 ", err)
 	}
 
-	app.InitDB()
+	// app.InitDB()
 }

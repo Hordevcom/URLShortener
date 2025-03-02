@@ -51,6 +51,8 @@ func (p *PGDB) CreateTable(db *sql.DB) {
 		p.logger.Errorw("Cannot create table: ", err)
 		return
 	}
+
+	p.logger.Infow("Create table urls")
 }
 
 func (p *PGDB) AddValuesToDB(db *sql.DB, shortURL, originalURL string) {

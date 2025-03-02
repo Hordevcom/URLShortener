@@ -11,7 +11,9 @@ import (
 	"testing"
 
 	"github.com/Hordevcom/URLShortener/internal/config"
+	"github.com/Hordevcom/URLShortener/internal/middleware/logging"
 	"github.com/Hordevcom/URLShortener/internal/storage"
+	"github.com/Hordevcom/URLShortener/internal/storage/pg"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -67,9 +69,13 @@ func TestShortenURL(t *testing.T) {
 	m1 := storage.NewStorage()
 	m1.Set("abc123", "https://example.com")
 	conf := config.NewConfig()
+	logger := logging.NewLogger()
+	pg := pg.NewPGDB(conf, logger, m1)
+
 	app := &App{
 		storage: m1,
 		config:  conf,
+		pg:      pg,
 	}
 
 	t.Run("successful URL shortening", func(t *testing.T) {
@@ -119,10 +125,16 @@ type RequestPayload struct {
 }
 
 func TestShortenURLJSON(t *testing.T) {
+	m1 := storage.NewStorage()
+	m1.Set("abc123", "https://example.com")
+	conf := config.NewConfig()
+	logger := logging.NewLogger()
+	pg := pg.NewPGDB(conf, logger, m1)
 	app := &App{
 		storage:     storage.NewStorage(),
 		JSONStorage: *storage.NewJSONStorage(),
 		config:      config.Config{Host: "http://localhost"},
+		pg:          pg,
 	}
 
 	tests := []struct {
