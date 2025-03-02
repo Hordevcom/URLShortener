@@ -106,7 +106,7 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 			ShortURL:    shortURL,
 			OriginalURL: string(body),
 		})
-		a.addDataToDB(shortURL, string(body))
+		// a.addDataToDB(shortURL, string(body))
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -131,7 +131,6 @@ func (a *App) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
 			OriginalURL: a.JSONStorage.Get(),
 		})
 		a.addDataToDB(shortURL, a.JSONStorage.Get())
-
 	}
 
 	response := Response{
