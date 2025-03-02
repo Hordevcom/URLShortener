@@ -9,7 +9,6 @@ import (
 
 	"github.com/Hordevcom/URLShortener/internal/config"
 	"github.com/Hordevcom/URLShortener/internal/files"
-	"github.com/Hordevcom/URLShortener/internal/storage/pg"
 
 	"github.com/Hordevcom/URLShortener/internal/storage"
 
@@ -33,16 +32,16 @@ type App struct {
 	config      config.Config
 	JSONStorage storage.JSONStorage
 	file        files.File
-	pg          *pg.PGDB
+	// pg          *pg.PGDB
 }
 
 type Response struct {
 	Result string `json:"result"`
 }
 
-func NewApp(storage storage.Storage, config config.Config, JSONStorage storage.JSONStorage, file files.File, pg *pg.PGDB) *App {
-	app := &App{storage: storage, config: config, file: file, pg: pg}
-	app.DownloadData()
+func NewApp(storage storage.Storage, config config.Config, JSONStorage storage.JSONStorage, file files.File) *App {
+	app := &App{storage: storage, config: config, file: file}
+	// app.DownloadData()
 	return app
 }
 
@@ -61,7 +60,7 @@ func (a *App) BatchShortenURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := a.pg.ConnectToDB()
+	// db, err := a.pg.ConnectToDB()
 
 	if err != nil {
 		http.Error(w, "Problem with connecting to DB", http.StatusInternalServerError)
@@ -77,7 +76,7 @@ func (a *App) BatchShortenURL(w http.ResponseWriter, r *http.Request) {
 
 		if _, exist := a.storage.Get(shortURL); !exist {
 			a.storage.Set(shortURL, req.OriginalURL)
-			a.pg.AddValuesToDB(db, shortURL, req.OriginalURL)
+			// a.pg.AddValuesToDB(db, shortURL, req.OriginalURL)
 		}
 	}
 
@@ -106,7 +105,7 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 			ShortURL:    shortURL,
 			OriginalURL: string(body),
 		})
-		a.addDataToDB(shortURL, string(body))
+		// a.addDataToDB(shortURL, string(body))
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -130,7 +129,7 @@ func (a *App) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
 			ShortURL:    shortURL,
 			OriginalURL: a.JSONStorage.Get(),
 		})
-		a.addDataToDB(shortURL, a.JSONStorage.Get())
+		// a.addDataToDB(shortURL, a.JSONStorage.Get())
 
 	}
 
@@ -156,24 +155,24 @@ func (a *App) Redirect(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) DBPing(w http.ResponseWriter, r *http.Request) {
-	db, _ := a.pg.ConnectToDB()
-	defer db.Close()
+	// db, _ := a.pg.ConnectToDB()
+	// defer db.Close()
 	w.WriteHeader(http.StatusOK)
 }
 
-func (a *App) addDataToDB(shortURL, originalURL string) {
-	db, _ := a.pg.ConnectToDB()
-	defer db.Close()
-	a.pg.CreateTable(db)
-	a.pg.AddValuesToDB(db, shortURL, originalURL)
-}
+// func (a *App) addDataToDB(shortURL, originalURL string) {
+// 	db, _ := a.pg.ConnectToDB()
+// 	defer db.Close()
+// 	a.pg.CreateTable(db)
+// 	a.pg.AddValuesToDB(db, shortURL, originalURL)
+// }
 
-func (a *App) DownloadData() {
-	db, err := a.pg.ConnectToDB()
+// func (a *App) DownloadData() {
+// 	db, err := a.pg.ConnectToDB()
 
-	if err != nil {
-		a.file.ReadFile(a.storage)
-	}
-	defer db.Close()
-	a.pg.ReadDataFromDB(db)
-}
+// 	if err != nil {
+// 		a.file.ReadFile(a.storage)
+// 	}
+// 	defer db.Close()
+// 	a.pg.ReadDataFromDB(db)
+// }
