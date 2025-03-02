@@ -43,6 +43,13 @@ type Response struct {
 func NewApp(storage storage.Storage, config config.Config, JSONStorage storage.JSONStorage, file files.File, pg *pg.PGDB) *App {
 	app := &App{storage: storage, config: config, file: file, pg: pg}
 	// app.DownloadData() create bug!
+	db, err := pg.ConnectToDB()
+
+	if err != nil {
+		panic(err)
+	}
+	pg.CreateTable(db)
+	defer db.Close()
 	return app
 }
 
