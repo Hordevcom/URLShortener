@@ -43,13 +43,6 @@ type Response struct {
 func NewApp(storage storage.Storage, config config.Config, JSONStorage storage.JSONStorage, file files.File, pg *pg.PGDB) *App {
 	app := &App{storage: storage, config: config, file: file, pg: pg}
 	// app.DownloadData() create bug!
-	db, err := pg.ConnectToDB()
-
-	if err != nil {
-		panic(err)
-	}
-	pg.CreateTable(db)
-	defer db.Close()
 	return app
 }
 
@@ -166,6 +159,16 @@ func (a *App) DBPing(w http.ResponseWriter, r *http.Request) {
 	db, _ := a.pg.ConnectToDB()
 	defer db.Close()
 	w.WriteHeader(http.StatusOK)
+}
+
+func (a *App) InitDB() {
+	db, err := a.pg.ConnectToDB()
+
+	if err != nil {
+		panic(err)
+	}
+	a.pg.CreateTable(db)
+	defer db.Close()
 }
 
 // func (a *App) addDataToDB(shortURL, originalURL string) {

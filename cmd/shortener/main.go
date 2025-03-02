@@ -29,4 +29,6 @@ func main() {
 	if err != nil {
 		logger.Fatalw("create server error:1 ", err)
 	}
+
+	app.InitDB()
 }
