@@ -54,7 +54,7 @@ func (p *PGDB) CreateTable(db *sql.DB) {
 }
 
 func (p *PGDB) AddValuesToDB(db *sql.DB, shortURL, originalURL string) {
-	query := `INSERT INTO urls VALUES ($1, $2)`
+	query := `INSERT INTO urls (short_url, original_url) VALUES ($1, $2) ON CONFLICT (short_url) DO NOTHING;`
 	_, err := db.Exec(query, shortURL, originalURL)
 	if err != nil {
 		p.logger.Errorw("Cannot add value to table: ", err)
