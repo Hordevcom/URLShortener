@@ -66,7 +66,7 @@ func (a *App) BatchShortenURL(w http.ResponseWriter, r *http.Request) {
 		shortURL := fmt.Sprintf("%x", md5.Sum([]byte(req.OriginalURL)))[:8]
 		responces = append(responces, ShortenResponce{
 			CorrelationID: req.CorrelationID,
-			ShortURL:      shortURL,
+			ShortURL:      a.config.Host + "/" + shortURL,
 		})
 
 		if _, exist := a.storage.Get(shortURL); !exist {
