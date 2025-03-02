@@ -9,6 +9,7 @@ import (
 
 	"github.com/Hordevcom/URLShortener/internal/config"
 	"github.com/Hordevcom/URLShortener/internal/files"
+	"github.com/Hordevcom/URLShortener/internal/storage/pg"
 
 	"github.com/Hordevcom/URLShortener/internal/storage"
 
@@ -32,16 +33,16 @@ type App struct {
 	config      config.Config
 	JSONStorage storage.JSONStorage
 	file        files.File
-	// pg          *pg.PGDB
+	pg          *pg.PGDB
 }
 
 type Response struct {
 	Result string `json:"result"`
 }
 
-func NewApp(storage storage.Storage, config config.Config, JSONStorage storage.JSONStorage, file files.File) *App {
-	app := &App{storage: storage, config: config, file: file}
-	// app.DownloadData()
+func NewApp(storage storage.Storage, config config.Config, JSONStorage storage.JSONStorage, file files.File, pg *pg.PGDB) *App {
+	app := &App{storage: storage, config: config, file: file, pg: pg}
+	app.DownloadData()
 	return app
 }
 
@@ -167,12 +168,12 @@ func (a *App) DBPing(w http.ResponseWriter, r *http.Request) {
 // 	a.pg.AddValuesToDB(db, shortURL, originalURL)
 // }
 
-// func (a *App) DownloadData() {
-// 	db, err := a.pg.ConnectToDB()
+func (a *App) DownloadData() {
+	db, err := a.pg.ConnectToDB()
 
-// 	if err != nil {
-// 		a.file.ReadFile(a.storage)
-// 	}
-// 	defer db.Close()
-// 	a.pg.ReadDataFromDB(db)
-// }
+	if err != nil {
+		a.file.ReadFile(a.storage)
+	}
+	defer db.Close()
+	a.pg.ReadDataFromDB(db)
+}
