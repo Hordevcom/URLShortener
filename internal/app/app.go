@@ -61,12 +61,6 @@ func (a *App) BatchShortenURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := a.pg.ConnectToDB()
-
-	if err != nil {
-		http.Error(w, "Problem with connecting to DB", http.StatusInternalServerError)
-		return
-	}
 	var responces []ShortenResponce
 	for _, req := range requests {
 		shortURL := fmt.Sprintf("%x", md5.Sum([]byte(req.OriginalURL)))[:8]
@@ -77,7 +71,7 @@ func (a *App) BatchShortenURL(w http.ResponseWriter, r *http.Request) {
 
 		if _, exist := a.storage.Get(shortURL); !exist {
 			a.storage.Set(shortURL, req.OriginalURL)
-			a.pg.AddValuesToDB(db, shortURL, req.OriginalURL)
+			a.SaveData(shortURL, req.OriginalURL)
 		}
 	}
 
@@ -101,12 +95,7 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 
 	if _, exist := a.storage.Get(shortURL); !exist {
 		a.storage.Set(shortURL, string(body))
-
-		a.file.UpdateFile(files.JSONStruct{
-			ShortURL:    shortURL,
-			OriginalURL: string(body),
-		})
-		a.addDataToDB(shortURL, string(body))
+		a.SaveData(shortURL, string(body))
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -126,11 +115,7 @@ func (a *App) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
 
 	if _, exist := a.storage.Get(shortURL); !exist {
 		a.storage.Set(shortURL, a.JSONStorage.Get())
-		a.file.UpdateFile(files.JSONStruct{
-			ShortURL:    shortURL,
-			OriginalURL: a.JSONStorage.Get(),
-		})
-		a.addDataToDB(shortURL, a.JSONStorage.Get())
+		a.SaveData(shortURL, a.JSONStorage.Get())
 	}
 
 	response := Response{
@@ -170,6 +155,17 @@ func (a *App) InitDB() {
 	defer db.Close()
 }
 
+func (a *App) SaveData(shortURL, originalURL string) {
+	if a.config.DatabaseDsn != "" {
+		a.addDataToDB(shortURL, originalURL)
+	} else if a.config.FilePath != "" {
+		a.file.UpdateFile(files.JSONStruct{
+			OriginalURL: originalURL,
+			ShortURL:    shortURL,
+		})
+	}
+}
+
 func (a *App) addDataToDB(shortURL, originalURL string) {
 	db, err := a.pg.ConnectToDB()
 
@@ -181,12 +177,18 @@ func (a *App) addDataToDB(shortURL, originalURL string) {
 	a.pg.AddValuesToDB(db, shortURL, originalURL)
 }
 
-// func (a *App) DownloadData() {
-// 	db, err := a.pg.ConnectToDB()
+func (a *App) DownloadData() {
 
-// 	if err != nil {
-// 		a.file.ReadFile(a.storage)
-// 	}
-// 	defer db.Close()
-// 	a.pg.ReadDataFromDB(db)
-// }
+	if a.config.DatabaseDsn != "" {
+		db, err := a.pg.ConnectToDB()
+
+		if err != nil {
+			a.file.ReadFile(a.storage)
+		}
+		defer db.Close()
+		a.pg.ReadDataFromDB(db)
+	} else if a.config.FilePath != "" {
+		a.file.ReadFile(a.storage)
+	}
+
+}
