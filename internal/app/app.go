@@ -106,7 +106,7 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 			ShortURL:    shortURL,
 			OriginalURL: string(body),
 		})
-		// a.addDataToDB(shortURL, string(body))
+		a.addDataToDB(shortURL, string(body))
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -130,7 +130,7 @@ func (a *App) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
 			ShortURL:    shortURL,
 			OriginalURL: a.JSONStorage.Get(),
 		})
-		// a.addDataToDB(shortURL, a.JSONStorage.Get())
+		a.addDataToDB(shortURL, a.JSONStorage.Get())
 
 	}
 
@@ -171,12 +171,12 @@ func (a *App) InitDB() {
 	defer db.Close()
 }
 
-// func (a *App) addDataToDB(shortURL, originalURL string) {
-// 	db, _ := a.pg.ConnectToDB()
-// 	defer db.Close()
-// 	a.pg.CreateTable(db)
-// 	a.pg.AddValuesToDB(db, shortURL, originalURL)
-// }
+func (a *App) addDataToDB(shortURL, originalURL string) {
+	db, _ := a.pg.ConnectToDB()
+	defer db.Close()
+	// a.pg.CreateTable(db)
+	a.pg.AddValuesToDB(db, shortURL, originalURL)
+}
 
 // func (a *App) DownloadData() {
 // 	db, err := a.pg.ConnectToDB()
