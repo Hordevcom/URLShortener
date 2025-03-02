@@ -21,7 +21,6 @@ func main() {
 	file := files.NewFile(conf, logger, strg)
 	pg := pg.NewPGDB(conf, logger, strg)
 	app := app.NewApp(strg, conf, *JSONStorage, *file, pg)
-	app.DownloadData()
 	router := routes.NewRouter(*app)
 
 	logger.Infow("Starting server", "addr", conf.ServerAdress)
