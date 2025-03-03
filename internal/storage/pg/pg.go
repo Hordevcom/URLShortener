@@ -3,9 +3,12 @@ package pg
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/Hordevcom/URLShortener/internal/config"
 	"github.com/Hordevcom/URLShortener/internal/storage"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	"go.uber.org/zap"
 )
 
@@ -55,13 +58,23 @@ func (p *PGDB) CreateTable(db *sql.DB) {
 	p.logger.Infow("Create table urls")
 }
 
-func (p *PGDB) AddValuesToDB(db *sql.DB, shortURL, originalURL string) {
-	query := `INSERT INTO urls (short_url, original_url) VALUES ($1, $2) ON CONFLICT (short_url) DO NOTHING;`
-	_, err := db.Exec(query, shortURL, originalURL)
-	if err != nil {
-		p.logger.Errorw("Cannot add value to table: ", err)
-		return
+func (p *PGDB) AddValuesToDB(db *sql.DB, shortURL, originalURL string) bool {
+	query := `INSERT INTO urls (short_url, original_url)
+	 VALUES ($1, $2) ON CONFLICT (short_url) DO NOTHING`
+
+	result, err := db.Exec(query, shortURL, originalURL)
+
+	if rows, _ := result.RowsAffected(); rows == 0 {
+		return false
 	}
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
+			return false
+		}
+	}
+
+	return true
 }
 
 func (p *PGDB) ReadDataFromDB(db *sql.DB) {

@@ -69,10 +69,9 @@ func (a *App) BatchShortenURL(w http.ResponseWriter, r *http.Request) {
 			ShortURL:      a.config.Host + "/" + shortURL,
 		})
 
-		if _, exist := a.storage.Get(shortURL); !exist {
-			a.storage.Set(shortURL, req.OriginalURL)
-			a.SaveData(shortURL, req.OriginalURL)
-		}
+		a.storage.Set(shortURL, req.OriginalURL)
+		a.SaveData(shortURL, req.OriginalURL)
+
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -94,9 +93,16 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 
 	shortURL := fmt.Sprintf("%x", md5.Sum(body))[:8]
 
-	if _, exist := a.storage.Get(shortURL); !exist {
-		a.storage.Set(shortURL, string(body))
-		a.SaveData(shortURL, string(body))
+	// if _, exist := a.storage.Get(shortURL); !exist {
+	// 	a.storage.Set(shortURL, string(body))
+	// 	a.SaveData(shortURL, string(body))
+	// }
+
+	a.storage.Set(shortURL, a.JSONStorage.Get())
+	if !a.addDataToDB(shortURL, a.JSONStorage.Get()) {
+		w.WriteHeader(http.StatusConflict)
+		fmt.Fprintf(w, "%s/%s", a.config.Host, shortURL)
+		return
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -114,16 +120,24 @@ func (a *App) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
 
 	shortURL := fmt.Sprintf("%x", md5.Sum([]byte(a.JSONStorage.Get())))[:8]
 
-	if _, exist := a.storage.Get(shortURL); !exist {
-		a.storage.Set(shortURL, a.JSONStorage.Get())
-		a.SaveData(shortURL, a.JSONStorage.Get())
-	}
+	// if _, exist := a.storage.Get(shortURL); !exist {
+	// 	a.storage.Set(shortURL, a.JSONStorage.Get())
+	// 	a.SaveData(shortURL, a.JSONStorage.Get())
+	// }
 
 	response := Response{
 		Result: a.config.Host + "/" + shortURL,
 	}
 
 	JSONResponse, _ := json.Marshal(response)
+
+	a.storage.Set(shortURL, a.JSONStorage.Get())
+	if !a.addDataToDB(shortURL, a.JSONStorage.Get()) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusConflict)
+		w.Write(JSONResponse)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
@@ -167,7 +181,7 @@ func (a *App) SaveData(shortURL, originalURL string) {
 	}
 }
 
-func (a *App) addDataToDB(shortURL, originalURL string) {
+func (a *App) addDataToDB(shortURL, originalURL string) bool {
 	db, err := a.pg.ConnectToDB()
 
 	if err != nil {
@@ -175,7 +189,7 @@ func (a *App) addDataToDB(shortURL, originalURL string) {
 	}
 	defer db.Close()
 	a.pg.CreateTable(db)
-	a.pg.AddValuesToDB(db, shortURL, originalURL)
+	return a.pg.AddValuesToDB(db, shortURL, originalURL)
 }
 
 func (a *App) DownloadData() {
