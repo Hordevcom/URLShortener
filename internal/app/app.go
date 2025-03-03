@@ -93,11 +93,6 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 
 	shortURL := fmt.Sprintf("%x", md5.Sum(body))[:8]
 
-	// if _, exist := a.storage.Get(shortURL); !exist {
-	// 	a.storage.Set(shortURL, string(body))
-	// 	a.SaveData(shortURL, string(body))
-	// }
-
 	a.storage.Set(shortURL, string(body))
 	ok := a.SaveData(shortURL, string(body))
 	if !ok {
@@ -120,11 +115,6 @@ func (a *App) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
 	}
 
 	shortURL := fmt.Sprintf("%x", md5.Sum([]byte(a.JSONStorage.Get())))[:8]
-
-	// if _, exist := a.storage.Get(shortURL); !exist {
-	// 	a.storage.Set(shortURL, a.JSONStorage.Get())
-	// 	a.SaveData(shortURL, a.JSONStorage.Get())
-	// }
 
 	response := Response{
 		Result: a.config.Host + "/" + shortURL,
