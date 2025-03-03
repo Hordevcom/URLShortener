@@ -93,17 +93,18 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 
 	shortURL := fmt.Sprintf("%x", md5.Sum(body))[:8]
 
-	if _, exist := a.storage.Get(shortURL); !exist {
-		a.storage.Set(shortURL, string(body))
-		a.SaveData(shortURL, string(body))
-	}
-
-	// a.storage.Set(shortURL, a.JSONStorage.Get())
-	// if !a.SaveData(shortURL, a.JSONStorage.Get()) {
-	// 	w.WriteHeader(http.StatusConflict)
-	// 	fmt.Fprintf(w, "%s/%s", a.config.Host, shortURL)
-	// 	return
+	// if _, exist := a.storage.Get(shortURL); !exist {
+	// 	a.storage.Set(shortURL, string(body))
+	// 	a.SaveData(shortURL, string(body))
 	// }
+
+	a.storage.Set(shortURL, string(body))
+	ok := a.SaveData(shortURL, string(body))
+	if !ok {
+		w.WriteHeader(http.StatusConflict)
+		fmt.Fprintf(w, "%s/%s", a.config.Host, shortURL)
+		return
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	fmt.Fprintf(w, "%s/%s", a.config.Host, shortURL)
