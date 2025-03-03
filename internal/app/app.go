@@ -99,7 +99,7 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	a.storage.Set(shortURL, a.JSONStorage.Get())
-	if !a.addDataToDB(shortURL, a.JSONStorage.Get()) {
+	if !a.SaveData(shortURL, a.JSONStorage.Get()) {
 		w.WriteHeader(http.StatusConflict)
 		fmt.Fprintf(w, "%s/%s", a.config.Host, shortURL)
 		return
@@ -132,7 +132,7 @@ func (a *App) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
 	JSONResponse, _ := json.Marshal(response)
 
 	a.storage.Set(shortURL, a.JSONStorage.Get())
-	if !a.addDataToDB(shortURL, a.JSONStorage.Get()) {
+	if !a.SaveData(shortURL, a.JSONStorage.Get()) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusConflict)
 		w.Write(JSONResponse)
@@ -170,15 +170,16 @@ func (a *App) InitDB() {
 	defer db.Close()
 }
 
-func (a *App) SaveData(shortURL, originalURL string) {
+func (a *App) SaveData(shortURL, originalURL string) bool {
 	if a.config.DatabaseDsn != "" {
-		a.addDataToDB(shortURL, originalURL)
+		return a.addDataToDB(shortURL, originalURL)
 	} else if a.config.FilePath != "" {
 		a.file.UpdateFile(files.JSONStruct{
 			OriginalURL: originalURL,
 			ShortURL:    shortURL,
 		})
 	}
+	return true
 }
 
 func (a *App) addDataToDB(shortURL, originalURL string) bool {
