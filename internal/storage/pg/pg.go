@@ -2,9 +2,14 @@ package pg
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"os"
+	"path/filepath"
 
 	"github.com/Hordevcom/URLShortener/internal/config"
+	"github.com/pressly/goose/v3"
+
 	// "github.com/Hordevcom/URLShortener/internal/storage"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -19,6 +24,23 @@ type PGDB struct {
 }
 
 func NewPGDB(config config.Config, logger zap.SugaredLogger) *PGDB {
+	db, err := sql.Open("pgx", config.DatabaseDsn)
+
+	if err != nil {
+		logger.Fatalw("Error with connection to DB: ", err)
+		return nil
+	}
+
+	defer db.Close()
+
+	wd, _ := os.Getwd()
+	migrationsPath := filepath.Join(filepath.Dir(filepath.Dir(wd)), "internal", "storage", "migrations")
+
+	err = goose.Up(db, migrationsPath)
+	if err != nil {
+		logger.Fatalw("Error with migrations: ", err)
+		return nil
+	}
 	return &PGDB{config: config, logger: logger} //storage: storage
 }
 
