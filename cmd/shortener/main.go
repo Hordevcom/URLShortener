@@ -1,9 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/Hordevcom/URLShortener/internal/app"
 	"github.com/Hordevcom/URLShortener/internal/config"
@@ -16,9 +14,6 @@ import (
 )
 
 func main() {
-	dir, _ := os.Getwd()
-	fmt.Println(dir)
-
 	logger := logging.NewLogger()
 	JSONStorage := storage.NewJSONStorage()
 	conf := config.NewConfig()
