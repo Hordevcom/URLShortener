@@ -57,7 +57,7 @@ func (p *PGDB) ConnectToDB() (*pgxpool.Pool, error) {
 // }
 
 func (p *PGDB) Get(shortURL string) (string, bool) {
-	var origURL string = ""
+	var origURL string
 	db, err := p.ConnectToDB()
 
 	if err != nil {

@@ -2,6 +2,7 @@ package storage
 
 import (
 	"github.com/Hordevcom/URLShortener/internal/config"
+	"github.com/Hordevcom/URLShortener/internal/files"
 	"github.com/Hordevcom/URLShortener/internal/storage/pg"
 	"go.uber.org/zap"
 )
@@ -23,6 +24,10 @@ func NewStorage(conf config.Config, logger zap.SugaredLogger) Storage {
 	if conf.DatabaseDsn != "" {
 		logger.Infow("DB config")
 		return pg.NewPGDB(conf, logger)
+	}
+	if conf.FilePath != "" {
+		logger.Infow("file config")
+		return files.NewFile(conf, logger)
 	}
 	logger.Infow("memory config")
 	return NewMapStorage()

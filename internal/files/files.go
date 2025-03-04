@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"github.com/Hordevcom/URLShortener/internal/config"
-	"github.com/Hordevcom/URLShortener/internal/storage"
 	"go.uber.org/zap"
 )
 
@@ -24,13 +23,18 @@ type File struct {
 	UUID   int
 }
 
-func NewFile(config config.Config, logger zap.SugaredLogger, storage storage.Storage) *File {
+func NewFile(config config.Config, logger zap.SugaredLogger) *File {
 	f := &File{config: config, logger: logger}
 	// f.ReadFile(storage)
 	return f
 }
 
-func (f *File) UpdateFile(jsonStruct JSONStruct) {
+func (f *File) Set(shortURL, origURL string) bool { //jsonStruct JSONStruct,
+
+	jsonStruct := JSONStruct{
+		ShortURL:    shortURL,
+		OriginalURL: origURL,
+	}
 
 	f.UUID++
 	jsonStruct.UUID = strconv.Itoa(f.UUID)
@@ -38,13 +42,13 @@ func (f *File) UpdateFile(jsonStruct JSONStruct) {
 	err := os.MkdirAll(filepath.Dir(f.config.FilePath), os.ModePerm)
 
 	if err != nil {
-		return
+		return false
 	}
 
 	file, err := os.OpenFile(f.config.FilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 
 	if err != nil {
-		return
+		return false
 	}
 	defer file.Close()
 
@@ -52,7 +56,7 @@ func (f *File) UpdateFile(jsonStruct JSONStruct) {
 
 	if err != nil {
 		f.logger.Errorw("Failed marshal")
-		return
+		return false
 	}
 	jsonData = append(jsonData, '\n')
 
@@ -60,23 +64,27 @@ func (f *File) UpdateFile(jsonStruct JSONStruct) {
 
 	if err != nil {
 		f.logger.Errorw("Failed to write file")
-		return
+		return false
 	}
+
+	return true
 }
 
-func (f *File) ReadFile(strg storage.Storage) {
+func (f *File) Get(shortURL string) (string, bool) { //strg storage.Storage
+
+	data := make(map[string]string)
 
 	var jsonStrct JSONStruct
 	err := os.MkdirAll(filepath.Dir(f.config.FilePath), os.ModePerm)
 
 	if err != nil {
-		return
+		return "", false
 	}
 
 	file, err := os.OpenFile(f.config.FilePath, os.O_RDONLY|os.O_CREATE, 06666)
 
 	if err != nil {
-		return
+		return "", false
 	}
 
 	f.logger.Infow("created file in direction: " + f.config.FilePath)
@@ -86,8 +94,16 @@ func (f *File) ReadFile(strg storage.Storage) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		json.Unmarshal(scanner.Bytes(), &jsonStrct)
-		strg.Set(jsonStrct.ShortURL, jsonStrct.OriginalURL)
+		data[jsonStrct.ShortURL] = jsonStrct.OriginalURL
+		//strg.Set(jsonStrct.ShortURL, jsonStrct.OriginalURL)
 	}
 
 	f.UUID, _ = strconv.Atoi(jsonStrct.UUID)
+
+	origURL, found := data[shortURL]
+	if !found {
+		return "", false
+	}
+
+	return origURL, true
 }

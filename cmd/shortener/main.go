@@ -18,7 +18,7 @@ func main() {
 	JSONStorage := storage.NewJSONStorage()
 	conf := config.NewConfig()
 	strg := storage.NewStorage(conf, logger)
-	file := files.NewFile(conf, logger, strg)
+	file := files.NewFile(conf, logger)
 	pg := pg.NewPGDB(conf, logger)
 	app := app.NewApp(strg, conf, *JSONStorage, *file, pg)
 	router := routes.NewRouter(*app)
