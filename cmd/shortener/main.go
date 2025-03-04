@@ -18,13 +18,9 @@ func main() {
 	JSONStorage := storage.NewJSONStorage()
 	conf := config.NewConfig()
 	strg := storage.NewStorage(conf, logger)
-
-	if conf.DatabaseDsn != "" {
-		pg.InitMigrations(conf, logger)
-	}
 	file := files.NewFile(conf, logger)
-	pg := pg.NewPGDB(conf, logger)
-	app := app.NewApp(strg, conf, *JSONStorage, *file, pg)
+	db := pg.NewPGDB(conf, logger)
+	app := app.NewApp(strg, conf, *JSONStorage, *file, db)
 	router := routes.NewRouter(*app)
 
 	logger.Infow("Starting server", "addr", conf.ServerAdress)
@@ -32,6 +28,10 @@ func main() {
 
 	if err != nil {
 		logger.Fatalw("create server error: ", err)
+	}
+
+	if conf.DatabaseDsn != "" {
+		pg.InitMigrations(conf, logger)
 	}
 
 }

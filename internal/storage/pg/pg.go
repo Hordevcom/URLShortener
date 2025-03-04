@@ -8,24 +8,21 @@ import (
 	"path/filepath"
 
 	"github.com/Hordevcom/URLShortener/internal/config"
-	"github.com/pressly/goose/v3"
-
-	// "github.com/Hordevcom/URLShortener/internal/storage"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/pressly/goose/v3"
 	"go.uber.org/zap"
 )
 
 type PGDB struct {
 	config config.Config
 	logger zap.SugaredLogger
-	// storage storage.Storage
 }
 
 func NewPGDB(config config.Config, logger zap.SugaredLogger) *PGDB {
 
-	return &PGDB{config: config, logger: logger} //storage: storage
+	return &PGDB{config: config, logger: logger}
 }
 
 func (p *PGDB) ConnectToDB() (*pgxpool.Pool, error) {
