@@ -70,7 +70,6 @@ func (a *App) BatchShortenURL(w http.ResponseWriter, r *http.Request) {
 		})
 
 		a.storage.Set(shortURL, req.OriginalURL)
-		a.SaveData(shortURL, req.OriginalURL)
 
 	}
 
@@ -93,8 +92,7 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 
 	shortURL := fmt.Sprintf("%x", md5.Sum(body))[:8]
 
-	a.storage.Set(shortURL, string(body))
-	ok := a.SaveData(shortURL, string(body))
+	ok := a.storage.Set(shortURL, string(body))
 	if !ok {
 		w.WriteHeader(http.StatusConflict)
 		fmt.Fprintf(w, "%s/%s", a.config.Host, shortURL)
@@ -122,8 +120,7 @@ func (a *App) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
 
 	JSONResponse, _ := json.Marshal(response)
 
-	a.storage.Set(shortURL, a.JSONStorage.Get())
-	if !a.SaveData(shortURL, a.JSONStorage.Get()) {
+	if !a.storage.Set(shortURL, a.JSONStorage.Get()) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusConflict)
 		w.Write(JSONResponse)
@@ -149,53 +146,4 @@ func (a *App) DBPing(w http.ResponseWriter, r *http.Request) {
 	db, _ := a.pg.ConnectToDB()
 	defer db.Close()
 	w.WriteHeader(http.StatusOK)
-}
-
-func (a *App) InitDB() {
-	db, err := a.pg.ConnectToDB()
-
-	if err != nil {
-		panic(err)
-	}
-	a.pg.CreateTable(db)
-	defer db.Close()
-}
-
-func (a *App) SaveData(shortURL, originalURL string) bool {
-	if a.config.DatabaseDsn != "" {
-		return a.addDataToDB(shortURL, originalURL)
-	} else if a.config.FilePath != "" {
-		a.file.UpdateFile(files.JSONStruct{
-			OriginalURL: originalURL,
-			ShortURL:    shortURL,
-		})
-	}
-	return true
-}
-
-func (a *App) addDataToDB(shortURL, originalURL string) bool {
-	db, err := a.pg.ConnectToDB()
-
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-	a.pg.CreateTable(db)
-	return a.pg.AddValuesToDB(db, shortURL, originalURL)
-}
-
-func (a *App) DownloadData() {
-
-	if a.config.DatabaseDsn != "" {
-		db, err := a.pg.ConnectToDB()
-
-		if err != nil {
-			a.file.ReadFile(a.storage)
-		}
-		defer db.Close()
-		a.pg.ReadDataFromDB(db)
-	} else if a.config.FilePath != "" {
-		a.file.ReadFile(a.storage)
-	}
-
 }

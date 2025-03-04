@@ -16,7 +16,7 @@ import (
 )
 
 func TestRedirect(t *testing.T) {
-	m1 := storage.NewStorage()
+	m1 := storage.NewMapStorage()
 	m1.Set("abc123", "https://example.com")
 	app := &App{storage: m1}
 
@@ -64,7 +64,7 @@ func TestRedirect(t *testing.T) {
 }
 
 func TestShortenURL(t *testing.T) {
-	m1 := storage.NewStorage()
+	m1 := storage.NewMapStorage()
 	m1.Set("abc123", "https://example.com")
 	conf := config.NewConfig()
 
@@ -120,10 +120,10 @@ type RequestPayload struct {
 }
 
 func TestShortenURLJSON(t *testing.T) {
-	m1 := storage.NewStorage()
+	m1 := storage.NewMapStorage()
 	m1.Set("abc123", "https://example.com")
 	app := &App{
-		storage:     storage.NewStorage(),
+		storage:     storage.NewMapStorage(),
 		JSONStorage: *storage.NewJSONStorage(),
 		config:      config.Config{Host: "http://localhost"},
 	}

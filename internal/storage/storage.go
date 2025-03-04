@@ -1,7 +1,13 @@
 package storage
 
+import (
+	"github.com/Hordevcom/URLShortener/internal/config"
+	"github.com/Hordevcom/URLShortener/internal/storage/pg"
+	"go.uber.org/zap"
+)
+
 type Storage interface {
-	Set(key, value string)
+	Set(key, value string) bool
 	Get(key string) (string, bool)
 }
 
@@ -9,12 +15,22 @@ type MapStorage struct {
 	data map[string]string
 }
 
-func NewStorage() *MapStorage {
+func NewMapStorage() *MapStorage {
 	return &MapStorage{data: make(map[string]string)}
 }
 
-func (s *MapStorage) Set(key, value string) {
+func NewStorage(conf config.Config, logger zap.SugaredLogger) Storage {
+	if conf.DatabaseDsn != "" {
+		logger.Infow("DB config")
+		return pg.NewPGDB(conf, logger)
+	}
+	logger.Infow("memory config")
+	return NewMapStorage()
+}
+
+func (s *MapStorage) Set(key, value string) bool {
 	s.data[key] = value
+	return true
 }
 
 func (s *MapStorage) Get(key string) (string, bool) {

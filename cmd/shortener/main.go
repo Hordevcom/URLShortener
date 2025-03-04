@@ -17,9 +17,9 @@ func main() {
 	logger := logging.NewLogger()
 	JSONStorage := storage.NewJSONStorage()
 	conf := config.NewConfig()
-	strg := storage.NewStorage()
+	strg := storage.NewStorage(conf, logger)
 	file := files.NewFile(conf, logger, strg)
-	pg := pg.NewPGDB(conf, logger, strg)
+	pg := pg.NewPGDB(conf, logger)
 	app := app.NewApp(strg, conf, *JSONStorage, *file, pg)
 	router := routes.NewRouter(*app)
 
@@ -27,7 +27,7 @@ func main() {
 	err := http.ListenAndServe(conf.ServerAdress, router)
 
 	if err != nil {
-		logger.Fatalw("create server error:1 ", err)
+		logger.Fatalw("create server error: ", err)
 	}
 
 }
