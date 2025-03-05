@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/Hordevcom/URLShortener/internal/config"
 	"github.com/jackc/pgerrcode"
@@ -114,8 +114,11 @@ func InitMigrations(conf config.Config, logger zap.SugaredLogger) {
 
 	defer db.Close()
 
-	wd, _ := os.Getwd()
-	migrationsPath := filepath.Join(filepath.Dir(filepath.Dir(wd)), "internal", "storage", "migrations")
+	_, filename, _, _ := runtime.Caller(0)
+	migrationsPath := filepath.Join(filepath.Dir(filename), "..", "migrations")
+
+	// wd, _ := os.Getwd()
+	// migrationsPath := filepath.Join(filepath.Dir(filepath.Dir(wd)), "internal", "storage", "migrations")
 
 	err = goose.Up(db, migrationsPath)
 	if err != nil {
