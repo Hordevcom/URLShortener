@@ -105,6 +105,7 @@ func (p *PGDB) Set(shortURL, originalURL string) bool {
 }
 
 func InitMigrations(conf config.Config, logger zap.SugaredLogger) {
+	logger.Infow("Start migrations")
 	db, err := sql.Open("pgx", conf.DatabaseDsn)
 
 	if err != nil {

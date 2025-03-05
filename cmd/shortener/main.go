@@ -23,15 +23,15 @@ func main() {
 	app := app.NewApp(strg, conf, *JSONStorage, *file, db)
 	router := routes.NewRouter(*app)
 
+	if conf.DatabaseDsn != "" {
+		pg.InitMigrations(conf, logger)
+	}
+
 	logger.Infow("Starting server", "addr", conf.ServerAdress)
 	err := http.ListenAndServe(conf.ServerAdress, router)
 
 	if err != nil {
 		logger.Fatalw("create server error: ", err)
-	}
-
-	if conf.DatabaseDsn != "" {
-		pg.InitMigrations(conf, logger)
 	}
 
 }
