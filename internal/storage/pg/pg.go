@@ -59,8 +59,8 @@ func (p *PGDB) Get(shortURL string) (string, bool) {
 	// 	return "", false
 	// }
 	// defer db.Close()
-
-	row := p.db.QueryRow(context.Background(), `SELECT original_url FROM urls WHERE short_url = $1`, shortURL)
+	query := `SELECT original_url FROM urls WHERE short_url = $1`
+	row := p.db.QueryRow(context.Background(), query, shortURL)
 	row.Scan(&origURL)
 
 	if origURL == "" {
