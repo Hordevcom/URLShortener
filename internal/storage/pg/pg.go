@@ -18,11 +18,17 @@ import (
 type PGDB struct {
 	config config.Config
 	logger zap.SugaredLogger
+	db     *pgxpool.Pool
 }
 
 func NewPGDB(config config.Config, logger zap.SugaredLogger) *PGDB {
+	db, err := pgxpool.New(context.Background(), config.DatabaseDsn)
 
-	return &PGDB{config: config, logger: logger}
+	if err != nil {
+		logger.Errorw("Problem with connecting to db: ", err)
+		return nil
+	}
+	return &PGDB{config: config, logger: logger, db: db}
 }
 
 func (p *PGDB) ConnectToDB() (*pgxpool.Pool, error) {
@@ -44,32 +50,17 @@ func (p *PGDB) ConnectToDB() (*pgxpool.Pool, error) {
 	return db, nil
 }
 
-// func (p *PGDB) CreateTable(db *sql.DB) {
-// 	createTableSQL := `
-// 	CREATE TABLE IF NOT EXISTS urls (
-// 		short_url TEXT NOT NULL PRIMARY KEY,
-// 		original_url TEXT NOT NULL
-// 	);`
-
-// 	_, err := db.Exec(createTableSQL)
-
-// 	if err != nil {
-// 		p.logger.Errorw("Cannot create table: ", err)
-// 		return
-// 	}
-// }
-
 func (p *PGDB) Get(shortURL string) (string, bool) {
 	var origURL string
-	db, err := p.ConnectToDB()
+	// db, err := p.ConnectToDB()
 
-	if err != nil {
-		p.logger.Errorw("Error to connect to db: ", err)
-		return "", false
-	}
-	defer db.Close()
+	// if err != nil {
+	// 	p.logger.Errorw("Error to connect to db: ", err)
+	// 	return "", false
+	// }
+	// defer db.Close()
 
-	row := db.QueryRow(context.Background(), `SELECT original_url FROM urls WHERE short_url = $1`, shortURL)
+	row := p.db.QueryRow(context.Background(), `SELECT original_url FROM urls WHERE short_url = $1`, shortURL)
 	row.Scan(&origURL)
 
 	if origURL == "" {
@@ -82,14 +73,14 @@ func (p *PGDB) Set(shortURL, originalURL string) bool {
 	query := `INSERT INTO urls (short_url, original_url)
 	 VALUES ($1, $2) ON CONFLICT (short_url) DO NOTHING`
 
-	db, err := p.ConnectToDB()
+	// db, err := p.ConnectToDB()
 
-	if err != nil {
-		p.logger.Errorw("Error to connect to db: ", err)
-		return false
-	}
+	// if err != nil {
+	// 	p.logger.Errorw("Error to connect to db: ", err)
+	// 	return false
+	// }
 
-	result, err := db.Exec(context.Background(), query, shortURL, originalURL)
+	result, err := p.db.Exec(context.Background(), query, shortURL, originalURL)
 
 	if rows := result.RowsAffected(); rows == 0 {
 		return false
@@ -116,9 +107,6 @@ func InitMigrations(conf config.Config, logger zap.SugaredLogger) {
 
 	_, filename, _, _ := runtime.Caller(0)
 	migrationsPath := filepath.Join(filepath.Dir(filename), "..", "migrations")
-
-	// wd, _ := os.Getwd()
-	// migrationsPath := filepath.Join(filepath.Dir(filepath.Dir(wd)), "internal", "storage", "migrations")
 
 	err = goose.Up(db, migrationsPath)
 	if err != nil {
