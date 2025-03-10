@@ -52,13 +52,7 @@ func (p *PGDB) ConnectToDB() (*pgxpool.Pool, error) {
 
 func (p *PGDB) Get(shortURL string) (string, bool) {
 	var origURL string
-	// db, err := p.ConnectToDB()
 
-	// if err != nil {
-	// 	p.logger.Errorw("Error to connect to db: ", err)
-	// 	return "", false
-	// }
-	// defer db.Close()
 	query := `SELECT original_url FROM urls WHERE short_url = $1`
 	row := p.db.QueryRow(context.Background(), query, shortURL)
 	row.Scan(&origURL)
@@ -72,13 +66,6 @@ func (p *PGDB) Get(shortURL string) (string, bool) {
 func (p *PGDB) Set(shortURL, originalURL string) bool {
 	query := `INSERT INTO urls (short_url, original_url)
 	 VALUES ($1, $2) ON CONFLICT (short_url) DO NOTHING`
-
-	// db, err := p.ConnectToDB()
-
-	// if err != nil {
-	// 	p.logger.Errorw("Error to connect to db: ", err)
-	// 	return false
-	// }
 
 	result, err := p.db.Exec(context.Background(), query, shortURL, originalURL)
 
