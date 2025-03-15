@@ -170,9 +170,12 @@ func (a *App) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("token")
 
 	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusNoContent)
+		return
 	}
 	fmt.Println(cookie.Value)
-	jwtgen.GetUserID(cookie.Value)
+	if err := cookie.Valid(); err == nil {
+		jwtgen.GetUserID(cookie.Value)
+	}
 
 }
