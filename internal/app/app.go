@@ -170,6 +170,12 @@ func (a *App) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("token")
 
 	if err != nil {
+		token, _ := jwtgen.BuildJWTString()
+		http.SetCookie(w, &http.Cookie{
+			Name:     "token",
+			Value:    token,
+			HttpOnly: true,
+		})
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
