@@ -9,6 +9,7 @@ import (
 
 	"github.com/Hordevcom/URLShortener/internal/config"
 	"github.com/Hordevcom/URLShortener/internal/files"
+	"github.com/Hordevcom/URLShortener/internal/middleware/jwtgen"
 	"github.com/Hordevcom/URLShortener/internal/storage/pg"
 
 	"github.com/Hordevcom/URLShortener/internal/storage"
@@ -79,6 +80,19 @@ func (a *App) BatchShortenURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
+	_, err := r.Cookie("token")
+
+	if err != nil {
+		token, _ := jwtgen.BuildJWTString()
+		http.SetCookie(w, &http.Cookie{
+			Name:     "token",
+			Value:    token,
+			HttpOnly: true,
+		})
+	}
+
+	// jwtgen.GetUserID(cookie.Value)
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("%v", err), http.StatusInternalServerError)
@@ -143,9 +157,6 @@ func (a *App) Redirect(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) DBPing(w http.ResponseWriter, r *http.Request) {
-	// db, _ := a.pg.ConnectToDB()
-	// defer db.Close()
-
 	err := a.pg.Ping()
 
 	if err != nil {
@@ -156,9 +167,12 @@ func (a *App) DBPing(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) GetUserUrls(w http.ResponseWriter, r *http.Request) {
-	_, err := r.Cookie("session_id")
+	cookie, err := r.Cookie("token")
 
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 	}
+	fmt.Println(cookie.Value)
+	jwtgen.GetUserID(cookie.Value)
+
 }
