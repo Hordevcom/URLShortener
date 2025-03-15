@@ -15,6 +15,7 @@ func NewRouter(app app.App) *chi.Mux {
 	router.With(compress.DecompressMiddleware).Post("/api/shorten", app.ShortenURLJSON)
 	router.With(compress.DecompressMiddleware).Post("/api/shorten/batch", app.BatchShortenURL)
 	router.Get("/ping", app.DBPing)
+	router.Get("/api/user/urls", app.GetUserUrls)
 	router.With(compress.CompressMiddleware).Get("/{id}", app.Redirect)
 
 	return router

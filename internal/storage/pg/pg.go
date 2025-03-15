@@ -50,6 +50,17 @@ func (p *PGDB) ConnectToDB() (*pgxpool.Pool, error) {
 	return db, nil
 }
 
+func (p *PGDB) Ping() error {
+	err := p.db.Ping(context.Background())
+
+	if err != nil {
+		p.logger.Errorw("Problem with ping to db: ", err)
+		return err
+	}
+
+	return nil
+}
+
 func (p *PGDB) Get(shortURL string) (string, bool) {
 	var origURL string
 

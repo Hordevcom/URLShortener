@@ -143,7 +143,22 @@ func (a *App) Redirect(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) DBPing(w http.ResponseWriter, r *http.Request) {
-	db, _ := a.pg.ConnectToDB()
-	defer db.Close()
+	// db, _ := a.pg.ConnectToDB()
+	// defer db.Close()
+
+	err := a.pg.Ping()
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func (a *App) GetUserUrls(w http.ResponseWriter, r *http.Request) {
+	_, err := r.Cookie("session_id")
+
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	}
 }
