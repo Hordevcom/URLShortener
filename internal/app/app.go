@@ -221,7 +221,8 @@ func (a *App) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(ShorigURLs[len(ShorigURLs)-1])
+	lastElement := ShorigURLs[len(ShorigURLs)-1]
+	err = json.NewEncoder(w).Encode(lastElement)
 	if err != nil {
 		panic(err)
 	}
