@@ -74,11 +74,39 @@ func (p *PGDB) Get(shortURL string) (string, bool) {
 	return origURL, true
 }
 
-func (p *PGDB) Set(shortURL, originalURL string) bool {
-	query := `INSERT INTO urls (short_url, original_url)
-	 VALUES ($1, $2) ON CONFLICT (short_url) DO NOTHING`
+func (p *PGDB) GetWithUserID(UserID int) (map[string]string, bool) {
+	var origURL string
+	var shortURL string
+	URLs := make(map[string]string)
 
-	result, err := p.db.Exec(context.Background(), query, shortURL, originalURL)
+	query := `SELECT original_url, short_url FROM urls WHERE user_id = $1`
+	rows, err := p.db.Query(context.Background(), query, UserID)
+
+	if err != nil {
+		p.logger.Fatalw("Ошибка выполнения запроса %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		err := rows.Scan(&origURL, &shortURL)
+		if err != nil {
+			p.logger.Fatalw("Ошибка сканирования строки: %v", err)
+		}
+
+		URLs[shortURL] = origURL
+	}
+
+	if origURL == "" {
+		return nil, false
+	}
+	return URLs, true
+}
+
+func (p *PGDB) Set(shortURL, originalURL string, user_id int) bool {
+	query := `INSERT INTO urls (short_url, original_url, user_id)
+	 VALUES ($1, $2, $3) ON CONFLICT (short_url) DO NOTHING`
+
+	result, err := p.db.Exec(context.Background(), query, shortURL, originalURL, user_id)
 
 	if rows := result.RowsAffected(); rows == 0 {
 		return false

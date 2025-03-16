@@ -32,7 +32,7 @@ func BuildJWTString() (string, error) {
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(TOKEN_EXP)),
 		},
-		UserID: 1,
+		UserID: 2,
 	})
 
 	tokenString, err := token.SignedString([]byte(SECRET_KEY))

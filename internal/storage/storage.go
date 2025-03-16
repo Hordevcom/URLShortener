@@ -8,7 +8,7 @@ import (
 )
 
 type Storage interface {
-	Set(key, value string) bool
+	Set(key, value string, userId int) bool
 	Get(key string) (string, bool)
 }
 
@@ -33,7 +33,7 @@ func NewStorage(conf config.Config, logger zap.SugaredLogger) Storage {
 	return NewMapStorage()
 }
 
-func (s *MapStorage) Set(key, value string) bool {
+func (s *MapStorage) Set(key, value string, user_id int) bool {
 	s.data[key] = value
 	return true
 }

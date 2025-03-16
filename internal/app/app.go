@@ -29,6 +29,11 @@ type ShortenResponce struct {
 	ShortURL      string `json:"short_url"`
 }
 
+type ShortenOrigURLs struct {
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
+}
+
 type App struct {
 	storage     storage.Storage
 	config      config.Config
@@ -70,7 +75,7 @@ func (a *App) BatchShortenURL(w http.ResponseWriter, r *http.Request) {
 			ShortURL:      a.config.Host + "/" + shortURL,
 		})
 
-		a.storage.Set(shortURL, req.OriginalURL)
+		a.storage.Set(shortURL, req.OriginalURL, 0)
 
 	}
 
@@ -80,7 +85,8 @@ func (a *App) BatchShortenURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
-	_, err := r.Cookie("token")
+	cookie, err := r.Cookie("token")
+	UserID := 0
 
 	if err != nil {
 		token, _ := jwtgen.BuildJWTString()
@@ -89,9 +95,14 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 			Value:    token,
 			HttpOnly: true,
 		})
-	}
 
-	// jwtgen.GetUserID(cookie.Value)
+		// cookie.Value = token
+		fmt.Println("Coockie set!")
+	}
+	if cookie.Valid() == nil {
+		UserID = jwtgen.GetUserID(cookie.Value)
+		fmt.Println("Coockie value taken!")
+	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -106,7 +117,7 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 
 	shortURL := fmt.Sprintf("%x", md5.Sum(body))[:8]
 
-	ok := a.storage.Set(shortURL, string(body))
+	ok := a.storage.Set(shortURL, string(body), UserID)
 	if !ok {
 		w.WriteHeader(http.StatusConflict)
 		fmt.Fprintf(w, "%s/%s", a.config.Host, shortURL)
@@ -134,7 +145,7 @@ func (a *App) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
 
 	JSONResponse, _ := json.Marshal(response)
 
-	if !a.storage.Set(shortURL, a.JSONStorage.Get()) {
+	if !a.storage.Set(shortURL, a.JSONStorage.Get(), 0) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusConflict)
 		w.Write(JSONResponse)
@@ -168,6 +179,8 @@ func (a *App) DBPing(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("token")
+	var UserID int
+	var ShorigURLs []ShortenOrigURLs
 
 	if err != nil {
 		token, _ := jwtgen.BuildJWTString()
@@ -181,7 +194,26 @@ func (a *App) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(cookie.Value)
 	if err := cookie.Valid(); err == nil {
-		jwtgen.GetUserID(cookie.Value)
+		UserID = jwtgen.GetUserID(cookie.Value)
+	}
+
+	URLs, ok := a.pg.GetWithUserID(UserID)
+
+	if !ok {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	for key, value := range URLs {
+		ShorigURLs = append(ShorigURLs, ShortenOrigURLs{
+			ShortURL:    key,
+			OriginalURL: value,
+		})
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(ShorigURLs)
+	if err != nil {
+		panic(err)
 	}
 
 }
