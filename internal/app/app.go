@@ -98,6 +98,7 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 
 		// cookie.Value = token
 		fmt.Println("Coockie set!")
+		fmt.Println(token)
 	}
 	if cookie.Valid() == nil {
 		UserID = jwtgen.GetUserID(cookie.Value)
@@ -210,7 +211,7 @@ func (a *App) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 			OriginalURL: value,
 		})
 	}
-	w.Header().Set("Content-Type", "application/json")
+	// w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(ShorigURLs)
 	if err != nil {
 		panic(err)
