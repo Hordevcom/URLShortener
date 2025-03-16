@@ -190,12 +190,15 @@ func (a *App) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 			Value:    token,
 			HttpOnly: true,
 		})
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNoContent)
+		fmt.Println("Token created at GetUserUrls!")
 		return
 	}
 	fmt.Println(cookie.Value)
 	if err := cookie.Valid(); err == nil {
 		UserID = jwtgen.GetUserID(cookie.Value)
+		fmt.Println("UserID collected from cookie.Value")
 	}
 
 	URLs, ok := a.pg.GetWithUserID(UserID)
@@ -211,7 +214,7 @@ func (a *App) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 			OriginalURL: value,
 		})
 	}
-	// w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(ShorigURLs)
 	if err != nil {
 		panic(err)
