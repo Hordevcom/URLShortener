@@ -29,7 +29,7 @@ func NewFile(config config.Config, logger zap.SugaredLogger) *File {
 	return f
 }
 
-func (f *File) Set(shortURL, origURL string, user_id int) bool { //jsonStruct JSONStruct,
+func (f *File) Set(shortURL, origURL string, userID int) bool { //jsonStruct JSONStruct,
 
 	jsonStruct := JSONStruct{
 		ShortURL:    shortURL,

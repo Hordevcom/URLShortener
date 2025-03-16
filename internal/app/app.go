@@ -87,9 +87,10 @@ func (a *App) BatchShortenURL(w http.ResponseWriter, r *http.Request) {
 func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("token")
 	UserID := 0
+	token := ""
 
 	if err != nil {
-		token, _ := jwtgen.BuildJWTString()
+		token, _ = jwtgen.BuildJWTString()
 		http.SetCookie(w, &http.Cookie{
 			Name:     "token",
 			Value:    token,
@@ -102,7 +103,10 @@ func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
 	}
 	if cookie.Valid() == nil {
 		UserID = jwtgen.GetUserID(cookie.Value)
-		fmt.Println("Coockie value taken!")
+		fmt.Println("Coockie value taken from coockie!")
+	} else {
+		UserID = jwtgen.GetUserID(token)
+		fmt.Println("Coockie value taken from token!")
 	}
 
 	body, err := io.ReadAll(r.Body)
@@ -198,12 +202,14 @@ func (a *App) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(cookie.Value)
 	if err := cookie.Valid(); err == nil {
 		UserID = jwtgen.GetUserID(cookie.Value)
+		fmt.Println(UserID)
 		fmt.Println("UserID collected from cookie.Value")
 	}
 
 	URLs, ok := a.pg.GetWithUserID(UserID)
 
 	if !ok {
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
