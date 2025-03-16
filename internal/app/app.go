@@ -220,9 +220,10 @@ func (a *App) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 			OriginalURL: value,
 		})
 	}
+	var ShorigURLs1 []ShortenOrigURLs
+	ShorigURLs1 = append(ShorigURLs1, ShorigURLs[len(ShorigURLs)-1])
 	w.Header().Set("Content-Type", "application/json")
-	lastElement := ShorigURLs[len(ShorigURLs)-1]
-	err = json.NewEncoder(w).Encode(lastElement)
+	err = json.NewEncoder(w).Encode(ShorigURLs1)
 	if err != nil {
 		panic(err)
 	}
