@@ -168,7 +168,7 @@ func (a *App) Redirect(w http.ResponseWriter, r *http.Request) {
 	if originalURL, exists := a.storage.Get(shortURL); exists {
 		http.Redirect(w, r, originalURL, http.StatusTemporaryRedirect)
 	} else {
-		http.Error(w, "URL not found", http.StatusBadRequest)
+		http.Error(w, "URL not found", http.StatusGone)
 	}
 }
 
@@ -246,6 +246,7 @@ func (a *App) DeleteUrls(w http.ResponseWriter, r *http.Request) {
 	}
 
 	a.pg.UpdateDeleteParam(urlIDs)
+	a.pg.Delete(urlIDs)
 
 	w.WriteHeader(http.StatusAccepted)
 }

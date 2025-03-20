@@ -86,6 +86,18 @@ func (p *PGDB) Get(shortURL string) (string, bool) {
 	return origURL, true
 }
 
+func (p *PGDB) Delete(shortURLs []string) {
+	query := `DELETE FROM urls
+				WHERE short_url = ANY($1)`
+
+	_, err := p.db.Exec(context.Background(), query, shortURLs)
+
+	if err != nil {
+		p.logger.Errorw("Problem with deleting from db: ", err)
+		return
+	}
+}
+
 func (p *PGDB) GetWithUserID(UserID int) (map[string]string, bool) {
 	var origURL string
 	var shortURL string
