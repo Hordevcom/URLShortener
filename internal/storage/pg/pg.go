@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"path/filepath"
 	"runtime"
 
@@ -97,7 +96,6 @@ func (p *PGDB) Delete(shortURLs string) {
 		p.logger.Errorw("Problem with deleting from db: ", err)
 		return
 	}
-	fmt.Println("deleted!")
 }
 
 func (p *PGDB) GetWithUserID(UserID int) (map[string]string, bool) {

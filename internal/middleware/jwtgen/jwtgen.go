@@ -2,6 +2,7 @@ package jwtgen
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -63,4 +64,20 @@ func GetUserID(tokenString string) int {
 	}
 
 	return claims.UserID
+}
+
+func AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, err := r.Cookie("token")
+
+		if err != nil {
+			token, _ := BuildJWTString()
+			http.SetCookie(w, &http.Cookie{
+				Name:     "token",
+				Value:    token,
+				HttpOnly: true,
+			})
+		}
+		next.ServeHTTP(w, r)
+	})
 }

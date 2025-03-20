@@ -86,29 +86,25 @@ func (a *App) BatchShortenURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("token")
-	UserID := 0
-	token := ""
+	cookie, _ := r.Cookie("token")
+	// UserID := 0
+	// token := ""
 
-	if err != nil {
-		token, _ = jwtgen.BuildJWTString()
-		http.SetCookie(w, &http.Cookie{
-			Name:     "token",
-			Value:    token,
-			HttpOnly: true,
-		})
+	// if err != nil {
+	// 	token, _ = jwtgen.BuildJWTString()
+	// 	http.SetCookie(w, &http.Cookie{
+	// 		Name:     "token",
+	// 		Value:    token,
+	// 		HttpOnly: true,
+	// 	})
+	// }
+	// if cookie.Valid() == nil {
+	// 	UserID = jwtgen.GetUserID(cookie.Value)
+	// } else {
+	// 	UserID = jwtgen.GetUserID(token)
+	// }
 
-		// cookie.Value = token
-		fmt.Println("Coockie set!")
-		fmt.Println(token)
-	}
-	if cookie.Valid() == nil {
-		UserID = jwtgen.GetUserID(cookie.Value)
-		fmt.Println("Coockie value taken from coockie!")
-	} else {
-		UserID = jwtgen.GetUserID(token)
-		fmt.Println("Coockie value taken from token!")
-	}
+	UserID := jwtgen.GetUserID(cookie.Value)
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
