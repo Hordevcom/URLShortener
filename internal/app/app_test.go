@@ -52,8 +52,8 @@ func TestRedirect(t *testing.T) {
 
 		app.Redirect(rr, req)
 
-		if rr.Code != http.StatusBadRequest {
-			t.Errorf("expected status %d, got %d", http.StatusBadRequest, rr.Code)
+		if rr.Code != http.StatusGone {
+			t.Errorf("expected status %d, got %d", http.StatusGone, rr.Code)
 		}
 
 		expectedBody := "URL not found\n"
