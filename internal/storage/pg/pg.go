@@ -34,7 +34,7 @@ func NewPGDB(config config.Config, logger zap.SugaredLogger) *PGDB {
 func (p *PGDB) UpdateDeleteParam(shortURLs string) {
 	query := `UPDATE urls
 				SET is_deleted = TRUE
-				WHERE short_url = ANY($1)`
+				WHERE short_url = $1`
 
 	_, err := p.db.Exec(context.Background(), query, shortURLs)
 	if err != nil {
@@ -88,7 +88,7 @@ func (p *PGDB) Get(shortURL string) (string, bool) {
 
 func (p *PGDB) Delete(shortURLs string) {
 	query := `DELETE FROM urls
-				WHERE short_url = ANY($1)`
+				WHERE short_url = $1`
 
 	_, err := p.db.Exec(context.Background(), query, shortURLs)
 
