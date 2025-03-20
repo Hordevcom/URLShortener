@@ -31,6 +31,18 @@ func NewPGDB(config config.Config, logger zap.SugaredLogger) *PGDB {
 	return &PGDB{config: config, logger: logger, db: db}
 }
 
+func (p *PGDB) UpdateDeleteParam(shortURLs []string) {
+	query := `UPDATE urls
+				SET is_deleted = TRUE
+				WHERE short_url = ANY($1)`
+
+	_, err := p.db.Exec(context.Background(), query, shortURLs)
+	if err != nil {
+		p.logger.Errorw("Update table error: ", err)
+		return
+	}
+}
+
 func (p *PGDB) ConnectToDB() (*pgxpool.Pool, error) {
 	db, err := pgxpool.New(context.Background(), p.config.DatabaseDsn) //sql.Open("pgx", p.config.DatabaseDsn)
 

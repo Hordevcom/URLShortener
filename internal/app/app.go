@@ -229,3 +229,23 @@ func (a *App) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func (a *App) DeleteUrls(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+
+	if err != nil {
+		http.Error(w, "Ошибка чтения запроса", http.StatusBadRequest)
+	}
+	defer r.Body.Close()
+
+	var urlIDs []string
+
+	err = json.Unmarshal(body, &urlIDs)
+	if err != nil {
+		http.Error(w, "Ошибка парсинга запроса", http.StatusBadRequest)
+	}
+
+	a.pg.UpdateDeleteParam(urlIDs)
+
+	w.WriteHeader(http.StatusAccepted)
+}
