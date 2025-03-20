@@ -31,7 +31,7 @@ func NewPGDB(config config.Config, logger zap.SugaredLogger) *PGDB {
 	return &PGDB{config: config, logger: logger, db: db}
 }
 
-func (p *PGDB) UpdateDeleteParam(shortURLs []string) {
+func (p *PGDB) UpdateDeleteParam(shortURLs string) {
 	query := `UPDATE urls
 				SET is_deleted = TRUE
 				WHERE short_url = ANY($1)`
@@ -86,7 +86,7 @@ func (p *PGDB) Get(shortURL string) (string, bool) {
 	return origURL, true
 }
 
-func (p *PGDB) Delete(shortURLs []string) {
+func (p *PGDB) Delete(shortURLs string) {
 	query := `DELETE FROM urls
 				WHERE short_url = ANY($1)`
 

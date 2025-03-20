@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sync"
 
 	"github.com/Hordevcom/URLShortener/internal/config"
 	"github.com/Hordevcom/URLShortener/internal/files"
@@ -245,8 +246,40 @@ func (a *App) DeleteUrls(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Ошибка парсинга запроса", http.StatusBadRequest)
 	}
 
-	a.pg.UpdateDeleteParam(urlIDs)
-	a.pg.Delete(urlIDs)
+	URLsCh := make(chan string, len(urlIDs))
+	mergeCh := make(chan string, len(urlIDs)*2)
+
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+	go a.UpdateDeleteWorker(URLsCh, mergeCh, &wg)
+	go a.DeleteWorker(URLsCh, mergeCh, &wg)
+
+	for _, id := range urlIDs {
+		URLsCh <- id
+	}
+	close(URLsCh)
+
+	go func() {
+		wg.Wait()
+		close(mergeCh)
+	}()
 
 	w.WriteHeader(http.StatusAccepted)
+}
+
+func (a *App) UpdateDeleteWorker(urlsCh <-chan string, mergeCh chan<- string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for urlID := range urlsCh {
+		a.pg.UpdateDeleteParam(urlID)
+		mergeCh <- urlID
+	}
+}
+
+func (a *App) DeleteWorker(urlsCh <-chan string, mergeCh chan<- string, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for urlID := range urlsCh {
+		a.pg.Delete(urlID)
+		mergeCh <- urlID
+	}
 }
