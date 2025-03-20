@@ -86,7 +86,11 @@ func (a *App) BatchShortenURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) ShortenURL(w http.ResponseWriter, r *http.Request) {
-	cookie, _ := r.Cookie("token")
+	cookie, err := r.Cookie("token")
+
+	if err != nil {
+		fmt.Print("No token value!")
+	}
 	// UserID := 0
 	// token := ""
 
