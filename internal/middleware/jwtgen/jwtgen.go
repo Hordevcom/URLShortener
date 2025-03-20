@@ -72,11 +72,13 @@ func AuthMiddleware(next http.Handler) http.Handler {
 
 		if err != nil {
 			token, _ := BuildJWTString()
-			http.SetCookie(w, &http.Cookie{
+			cookie := &http.Cookie{
 				Name:     "token",
 				Value:    token,
 				HttpOnly: true,
-			})
+			}
+			http.SetCookie(w, cookie)
+			r.AddCookie(cookie)
 		}
 		next.ServeHTTP(w, r)
 	})
