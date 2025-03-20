@@ -236,6 +236,7 @@ func (a *App) DeleteUrls(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		http.Error(w, "Ошибка чтения запроса", http.StatusBadRequest)
+		return
 	}
 	defer r.Body.Close()
 
@@ -244,42 +245,40 @@ func (a *App) DeleteUrls(w http.ResponseWriter, r *http.Request) {
 	err = json.Unmarshal(body, &urlIDs)
 	if err != nil {
 		http.Error(w, "Ошибка парсинга запроса", http.StatusBadRequest)
+		return
 	}
 
 	URLsCh := make(chan string, len(urlIDs))
-	mergeCh := make(chan string, len(urlIDs)*2)
+	deleteCh := make(chan string, len(urlIDs))
 
 	var wg sync.WaitGroup
 
 	wg.Add(2)
-	go a.UpdateDeleteWorker(URLsCh, mergeCh, &wg)
-	go a.DeleteWorker(URLsCh, mergeCh, &wg)
+	go a.UpdateDeleteWorker(URLsCh, &wg)
+	go a.DeleteWorker(deleteCh, &wg)
 
 	for _, id := range urlIDs {
 		URLsCh <- id
+		deleteCh <- id
 	}
 	close(URLsCh)
+	close(deleteCh)
 
-	go func() {
-		wg.Wait()
-		close(mergeCh)
-	}()
+	wg.Wait()
 
 	w.WriteHeader(http.StatusAccepted)
 }
 
-func (a *App) UpdateDeleteWorker(urlsCh <-chan string, mergeCh chan<- string, wg *sync.WaitGroup) {
+func (a *App) UpdateDeleteWorker(urlsCh <-chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for urlID := range urlsCh {
 		a.pg.UpdateDeleteParam(urlID)
-		mergeCh <- urlID
 	}
 }
 
-func (a *App) DeleteWorker(urlsCh <-chan string, mergeCh chan<- string, wg *sync.WaitGroup) {
+func (a *App) DeleteWorker(urlsCh <-chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for urlID := range urlsCh {
 		a.pg.Delete(urlID)
-		mergeCh <- urlID
 	}
 }
