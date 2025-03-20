@@ -78,6 +78,11 @@ func TestShortenURL(t *testing.T) {
 		reqBody := []byte(originalURL)
 
 		req := httptest.NewRequest("POST", "/shorten", bytes.NewReader(reqBody))
+
+		req.AddCookie(&http.Cookie{
+			Name:  "token",
+			Value: "2",
+		})
 		rr := httptest.NewRecorder()
 
 		app.ShortenURL(rr, req)
@@ -100,6 +105,11 @@ func TestShortenURL(t *testing.T) {
 
 	t.Run("empty body returns 400", func(t *testing.T) {
 		req := httptest.NewRequest("POST", "/shorten", bytes.NewReader([]byte{}))
+
+		req.AddCookie(&http.Cookie{
+			Name:  "token",
+			Value: "2",
+		})
 		rr := httptest.NewRecorder()
 
 		app.ShortenURL(rr, req)
