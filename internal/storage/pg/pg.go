@@ -126,7 +126,7 @@ func (p *PGDB) GetWithUserID(UserID int) (map[string]string, bool) {
 	return URLs, true
 }
 
-func (p *PGDB) Set(shortURL, originalURL string, userID int) bool {
+func (p *PGDB) Set(ctx context.Context, shortURL, originalURL string, userID int) bool {
 	query := `INSERT INTO urls (short_url, original_url, user_id)
 	 VALUES ($1, $2, $3) ON CONFLICT (short_url) DO NOTHING`
 

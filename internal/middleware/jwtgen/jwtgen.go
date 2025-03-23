@@ -13,18 +13,6 @@ type Claims struct {
 	UserID int
 }
 
-// type JWTGen struct {
-// 	token_exp  time.Duration
-// 	secret_key string
-// }
-
-// func NewJWTGen() JWTGen {
-// 	return JWTGen{
-// 		token_exp:  time.Hour * 12,
-// 		secret_key: "supersecretkey",
-// 	}
-// }
-
 var tokenExp = time.Hour * 12
 
 var secretKey = "supersecretkey"
