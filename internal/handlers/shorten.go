@@ -17,7 +17,7 @@ type ShortenHandler struct {
 	Storage     storage.Storage
 	Config      config.Config
 	JSONStorage storage.JSONStorage
-	Db          pg.PGDB
+	DB          pg.PGDB
 }
 
 func NewShortenHandler(storage storage.Storage, config config.Config, JSONStorage storage.JSONStorage, db pg.PGDB) *ShortenHandler {
@@ -25,7 +25,7 @@ func NewShortenHandler(storage storage.Storage, config config.Config, JSONStorag
 		Storage:     storage,
 		Config:      config,
 		JSONStorage: JSONStorage,
-		Db:          db,
+		DB:          db,
 	}
 }
 

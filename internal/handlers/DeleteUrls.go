@@ -48,13 +48,13 @@ func (h *ShortenHandler) DeleteUrls(w http.ResponseWriter, r *http.Request) {
 func (h *ShortenHandler) UpdateDeleteWorker(urlsCh <-chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for urlID := range urlsCh {
-		h.Db.UpdateDeleteParam(urlID)
+		h.DB.UpdateDeleteParam(urlID)
 	}
 }
 
 func (h *ShortenHandler) DeleteWorker(urlsCh <-chan string, wg *sync.WaitGroup) {
 	defer wg.Done()
 	for urlID := range urlsCh {
-		h.Db.Delete(urlID)
+		h.DB.Delete(urlID)
 	}
 }

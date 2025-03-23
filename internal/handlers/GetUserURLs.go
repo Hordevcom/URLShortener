@@ -37,7 +37,7 @@ func (h *ShortenHandler) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("UserID collected from cookie.Value")
 	}
 
-	URLs, ok := h.Db.GetWithUserID(UserID)
+	URLs, ok := h.DB.GetWithUserID(UserID)
 
 	if !ok {
 		w.Header().Set("Content-Type", "application/json")
@@ -53,6 +53,7 @@ func (h *ShortenHandler) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 	}
 	var ShorigURLs1 []ShortenOrigURLs
 	ShorigURLs1 = append(ShorigURLs1, ShorigURLs[len(ShorigURLs)-1])
+	fmt.Println(ShorigURLs)
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(ShorigURLs1)
 	if err != nil {
