@@ -11,7 +11,7 @@ import (
 
 type Storage interface {
 	Set(ctx context.Context, key, value string, userID int) bool
-	Get(key string) (string, bool)
+	Get(ctx context.Context, key string) (string, bool)
 }
 
 type MapStorage struct {
@@ -40,7 +40,7 @@ func (s *MapStorage) Set(ctx context.Context, key, value string, userID int) boo
 	return true
 }
 
-func (s *MapStorage) Get(key string) (string, bool) {
+func (s *MapStorage) Get(ctx context.Context, key string) (string, bool) {
 	value, exist := s.data[key]
 	return value, exist
 }

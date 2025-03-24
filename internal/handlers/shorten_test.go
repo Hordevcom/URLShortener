@@ -48,7 +48,7 @@ func TestShortenURL(t *testing.T) {
 			t.Errorf("expected response body %q, got %q", expectedResponse, rr.Body.String())
 		}
 
-		if storedURL, exists := m1.Get(expectedShort); !exists || storedURL != originalURL {
+		if storedURL, exists := m1.Get(req.Context(), expectedShort); !exists || storedURL != originalURL {
 			t.Errorf("expected storage to contain %q, but got %q", originalURL, storedURL)
 		}
 	})

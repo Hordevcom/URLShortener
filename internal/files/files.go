@@ -71,7 +71,7 @@ func (f *File) Set(ctx context.Context, shortURL, origURL string, userID int) bo
 	return true
 }
 
-func (f *File) Get(shortURL string) (string, bool) { //strg storage.Storage
+func (f *File) Get(ctx context.Context, shortURL string) (string, bool) { //strg storage.Storage
 
 	data := make(map[string]string)
 

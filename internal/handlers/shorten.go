@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"crypto/md5"
 	"fmt"
 	"io"
@@ -51,7 +50,7 @@ func (h *ShortenHandler) ShortenURL(w http.ResponseWriter, r *http.Request) {
 
 	shortURL := fmt.Sprintf("%x", md5.Sum(body))[:8]
 
-	ok := h.Storage.Set(context.Background(), shortURL, string(body), UserID)
+	ok := h.Storage.Set(r.Context(), shortURL, string(body), UserID)
 
 	if !ok {
 		w.WriteHeader(http.StatusConflict)

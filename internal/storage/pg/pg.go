@@ -18,7 +18,7 @@ import (
 type PGDB struct {
 	config config.Config
 	logger zap.SugaredLogger
-	db     *pgxpool.Pool
+	DB     *pgxpool.Pool
 }
 
 func NewPGDB(config config.Config, logger zap.SugaredLogger) *PGDB {
@@ -28,30 +28,30 @@ func NewPGDB(config config.Config, logger zap.SugaredLogger) *PGDB {
 		logger.Errorw("Problem with connecting to db: ", err)
 		return nil
 	}
-	return &PGDB{config: config, logger: logger, db: db}
+	return &PGDB{config: config, logger: logger, DB: db}
 }
 
-func (p *PGDB) UpdateDeleteParam(shortURLs string) {
+func (p *PGDB) UpdateDeleteParam(ctx context.Context, shortURLs string) {
 	query := `UPDATE urls
 				SET is_deleted = TRUE
 				WHERE short_url = $1`
 
-	_, err := p.db.Exec(context.Background(), query, shortURLs)
+	_, err := p.DB.Exec(ctx, query, shortURLs)
 	if err != nil {
 		p.logger.Errorw("Update table error: ", err)
 		return
 	}
 }
 
-func (p *PGDB) ConnectToDB() (*pgxpool.Pool, error) {
-	db, err := pgxpool.New(context.Background(), p.config.DatabaseDsn) //sql.Open("pgx", p.config.DatabaseDsn)
+func (p *PGDB) ConnectToDB(ctx context.Context) (*pgxpool.Pool, error) {
+	db, err := pgxpool.New(ctx, p.config.DatabaseDsn) //sql.Open("pgx", p.config.DatabaseDsn)
 
 	if err != nil {
 		p.logger.Errorw("Problem with connecting to db: ", err)
 		return nil, err
 	}
 
-	err = db.Ping(context.Background())
+	err = db.Ping(ctx)
 
 	if err != nil {
 		p.logger.Errorw("Problem with ping to db: ", err)
@@ -62,8 +62,8 @@ func (p *PGDB) ConnectToDB() (*pgxpool.Pool, error) {
 	return db, nil
 }
 
-func (p *PGDB) Ping() error {
-	err := p.db.Ping(context.Background())
+func (p *PGDB) Ping(ctx context.Context) error {
+	err := p.DB.Ping(ctx)
 
 	if err != nil {
 		p.logger.Errorw("Problem with ping to db: ", err)
@@ -73,11 +73,11 @@ func (p *PGDB) Ping() error {
 	return nil
 }
 
-func (p *PGDB) Get(shortURL string) (string, bool) {
+func (p *PGDB) Get(ctx context.Context, shortURL string) (string, bool) {
 	var origURL string
 
 	query := `SELECT original_url FROM urls WHERE short_url = $1`
-	row := p.db.QueryRow(context.Background(), query, shortURL)
+	row := p.DB.QueryRow(context.Background(), query, shortURL)
 	row.Scan(&origURL)
 
 	if origURL == "" {
@@ -86,11 +86,11 @@ func (p *PGDB) Get(shortURL string) (string, bool) {
 	return origURL, true
 }
 
-func (p *PGDB) Delete(shortURLs string) {
+func (p *PGDB) Delete(ctx context.Context, shortURLs string) {
 	query := `DELETE FROM urls
 				WHERE short_url = $1`
 
-	_, err := p.db.Exec(context.Background(), query, shortURLs)
+	_, err := p.DB.Exec(context.Background(), query, shortURLs)
 
 	if err != nil {
 		p.logger.Errorw("Problem with deleting from db: ", err)
@@ -98,13 +98,13 @@ func (p *PGDB) Delete(shortURLs string) {
 	}
 }
 
-func (p *PGDB) GetWithUserID(UserID int) (map[string]string, bool) {
+func (p *PGDB) GetWithUserID(ctx context.Context, UserID int) (map[string]string, bool) {
 	var origURL string
 	var shortURL string
 	URLs := make(map[string]string)
 
 	query := `SELECT original_url, short_url FROM urls WHERE user_id = $1`
-	rows, err := p.db.Query(context.Background(), query, UserID)
+	rows, err := p.DB.Query(context.Background(), query, UserID)
 
 	if err != nil {
 		p.logger.Fatalw("Ошибка выполнения запроса %v", err)
@@ -130,7 +130,7 @@ func (p *PGDB) Set(ctx context.Context, shortURL, originalURL string, userID int
 	query := `INSERT INTO urls (short_url, original_url, user_id)
 	 VALUES ($1, $2, $3) ON CONFLICT (short_url) DO NOTHING`
 
-	result, err := p.db.Exec(context.Background(), query, shortURL, originalURL, userID)
+	result, err := p.DB.Exec(ctx, query, shortURL, originalURL, userID)
 
 	if rows := result.RowsAffected(); rows == 0 {
 		return false

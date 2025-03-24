@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
@@ -29,7 +28,7 @@ func (h *ShortenHandler) ShortenURLJSON(w http.ResponseWriter, r *http.Request) 
 
 	JSONResponse, _ := json.Marshal(response)
 
-	if !h.Storage.Set(context.Background(), shortURL, h.JSONStorage.Get(), 0) {
+	if !h.Storage.Set(r.Context(), shortURL, h.JSONStorage.Get(), 0) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusConflict)
 		w.Write(JSONResponse)

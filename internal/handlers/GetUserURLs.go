@@ -37,7 +37,7 @@ func (h *ShortenHandler) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("UserID collected from cookie.Value")
 	}
 
-	URLs, ok := h.DB.GetWithUserID(UserID)
+	URLs, ok := h.DB.GetWithUserID(r.Context(), UserID)
 
 	if !ok {
 		w.Header().Set("Content-Type", "application/json")
