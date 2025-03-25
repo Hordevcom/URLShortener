@@ -2,8 +2,10 @@ package pg
 
 import (
 	"context"
+	"crypto/md5"
 	"database/sql"
 	"errors"
+	"fmt"
 	"path/filepath"
 	"runtime"
 
@@ -21,6 +23,16 @@ type PGDB struct {
 	DB     *pgxpool.Pool
 }
 
+type ShortenRequest struct {
+	CorrelationID string `json:"correlation_id"`
+	OriginalURL   string `json:"original_url"`
+}
+
+type ShortenResponce struct {
+	CorrelationID string `json:"correlation_id"`
+	ShortURL      string `json:"short_url"`
+}
+
 func NewPGDB(config config.Config, logger zap.SugaredLogger) *PGDB {
 	db, err := pgxpool.New(context.Background(), config.DatabaseDsn)
 
@@ -29,6 +41,46 @@ func NewPGDB(config config.Config, logger zap.SugaredLogger) *PGDB {
 		return nil
 	}
 	return &PGDB{config: config, logger: logger, DB: db}
+}
+
+func (p *PGDB) BatchShortenURL(ctx context.Context, requests []ShortenRequest) ([]ShortenResponce, error) {
+	tx, err := p.DB.Begin(ctx)
+
+	if err != nil {
+		p.logger.Errorw("Failed to start transaction", err)
+		return nil, err
+	}
+
+	defer tx.Rollback(ctx)
+
+	query := `INSERT INTO urls (short_url, original_url, user_id)
+	 VALUES ($1, $2, $3) ON CONFLICT (short_url) DO NOTHING`
+
+	var responces []ShortenResponce
+
+	for _, req := range requests {
+		shortURL := fmt.Sprintf("%x", md5.Sum([]byte(req.OriginalURL)))[:8]
+
+		_, err := tx.Exec(ctx, query, shortURL, req.OriginalURL, 0)
+
+		if err != nil {
+			p.logger.Errorw("Failed to insert data", err)
+			return nil, err
+		}
+
+		responces = append(responces, ShortenResponce{
+			CorrelationID: req.CorrelationID,
+			ShortURL:      p.config.Host + "/" + shortURL,
+		})
+
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		p.logger.Errorw("Failed to commit transaction", ctx)
+		return nil, err
+	}
+
+	return responces, nil
 }
 
 func (p *PGDB) UpdateDeleteParam(ctx context.Context, shortURLs string) {
