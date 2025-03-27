@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"github.com/Hordevcom/URLShortener/internal/app"
 	"github.com/Hordevcom/URLShortener/internal/handlers"
 	"github.com/Hordevcom/URLShortener/internal/middleware/compress"
 	"github.com/Hordevcom/URLShortener/internal/middleware/jwtgen"
@@ -9,10 +8,8 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func NewRouter(app app.App) *chi.Mux {
+func NewRouter(handler handlers.ShortenHandler) *chi.Mux {
 	router := chi.NewRouter()
-
-	handler := handlers.NewShortenHandler(app.Storage, app.Config, app.JSONStorage, *app.Pg)
 
 	router.Use(logging.WithLogging)
 	router.With(compress.DecompressMiddleware, jwtgen.AuthMiddleware).Post("/", handler.ShortenURL)

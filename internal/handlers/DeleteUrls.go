@@ -1,11 +1,9 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
 	"io"
 	"net/http"
-	"sync"
 )
 
 func (h *ShortenHandler) DeleteUrls(w http.ResponseWriter, r *http.Request) {
@@ -25,37 +23,23 @@ func (h *ShortenHandler) DeleteUrls(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	URLsCh := make(chan string, len(urlIDs))
-	deleteCh := make(chan string, len(urlIDs))
-
-	var wg sync.WaitGroup
-
-	wg.Add(2)
-	go h.UpdateDeleteWorker(r.Context(), URLsCh, &wg)
-	go h.DeleteWorker(r.Context(), deleteCh, &wg)
-
 	for _, id := range urlIDs {
-		URLsCh <- id
-		deleteCh <- id
+		h.DeleteCh <- id
 	}
-	close(URLsCh)
-	close(deleteCh)
-
-	wg.Wait()
 
 	w.WriteHeader(http.StatusAccepted)
 }
 
-func (h *ShortenHandler) UpdateDeleteWorker(ctx context.Context, urlsCh <-chan string, wg *sync.WaitGroup) {
-	defer wg.Done()
-	for urlID := range urlsCh {
-		h.DB.UpdateDeleteParam(ctx, urlID)
-	}
-}
+// func (h *ShortenHandler) UpdateDeleteWorker(ctx context.Context, urlsCh <-chan string, wg *sync.WaitGroup) {
+// 	defer wg.Done()
+// 	for urlID := range urlsCh {
+// 		h.DB.UpdateDeleteParam(ctx, urlID)
+// 	}
+// }
 
-func (h *ShortenHandler) DeleteWorker(ctx context.Context, urlsCh <-chan string, wg *sync.WaitGroup) {
-	defer wg.Done()
-	for urlID := range urlsCh {
-		h.DB.Delete(ctx, urlID)
-	}
-}
+// func (h *ShortenHandler) DeleteWorker(ctx context.Context, urlsCh <-chan string, wg *sync.WaitGroup) {
+// 	defer wg.Done()
+// 	for urlID := range urlsCh {
+// 		h.DB.Delete(ctx, urlID)
+// 	}
+// }

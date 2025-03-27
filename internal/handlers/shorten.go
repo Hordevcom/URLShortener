@@ -17,14 +17,16 @@ type ShortenHandler struct {
 	Config      config.Config
 	JSONStorage storage.JSONStorage
 	DB          pg.PGDB
+	DeleteCh    chan string
 }
 
-func NewShortenHandler(storage storage.Storage, config config.Config, JSONStorage storage.JSONStorage, db pg.PGDB) *ShortenHandler {
+func NewShortenHandler(storage storage.Storage, config config.Config, JSONStorage storage.JSONStorage, db pg.PGDB, deleteCh chan string) *ShortenHandler {
 	return &ShortenHandler{
 		Storage:     storage,
 		Config:      config,
 		JSONStorage: JSONStorage,
 		DB:          db,
+		DeleteCh:    deleteCh,
 	}
 }
 

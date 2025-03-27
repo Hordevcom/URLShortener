@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"runtime"
 
+	_ "github.com/jackc/pgx/v5/stdlib"
+
 	"github.com/Hordevcom/URLShortener/internal/config"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
