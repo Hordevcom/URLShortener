@@ -30,7 +30,7 @@ func main() {
 	handler := handlers.NewShortenHandler(
 		strg, conf, *JSONStorage, *db, DeleteCh)
 	router := routes.NewRouter(*handler)
-	workers := workers.NewDeleteWorker(ctx, db, DeleteCh)
+	workers := workers.NewDeleteWorker(ctx, db, DeleteCh, *handler)
 
 	if conf.DatabaseDsn != "" {
 		pg.InitMigrations(conf, logger)
@@ -51,5 +51,5 @@ func main() {
 	}
 
 	workers.StopWorker()
-	close(DeleteCh)
+	handler.CloseCh()
 }

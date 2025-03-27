@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/Hordevcom/URLShortener/internal/handlers"
 	"github.com/Hordevcom/URLShortener/internal/storage/pg"
 )
 
@@ -12,13 +13,15 @@ type Worker struct {
 	DB       pg.PGDB
 	ctx      context.Context
 	wg       sync.WaitGroup
+	handler  handlers.ShortenHandler
 }
 
-func NewDeleteWorker(ctx context.Context, DB *pg.PGDB, deleteCh chan string) *Worker {
+func NewDeleteWorker(ctx context.Context, DB *pg.PGDB, deleteCh chan string, handler handlers.ShortenHandler) *Worker {
 	worker := &Worker{
 		ctx:      ctx,
 		DB:       *DB,
 		deleteCh: deleteCh,
+		handler:  handler,
 	}
 
 	worker.wg.Add(2)
@@ -39,7 +42,7 @@ func (w *Worker) UpdateDeleteWorker(ctx context.Context, urlsCh <-chan string) {
 				return
 			}
 			w.DB.UpdateDeleteParam(ctx, urlID)
-			w.deleteCh <- urlID
+			w.handler.AddToChan(urlID)
 		}
 	}
 }

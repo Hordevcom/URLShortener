@@ -24,7 +24,7 @@ func (h *ShortenHandler) DeleteUrls(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, id := range urlIDs {
-		h.DeleteCh <- id
+		h.AddToChan(id)
 	}
 
 	w.WriteHeader(http.StatusAccepted)
@@ -32,4 +32,8 @@ func (h *ShortenHandler) DeleteUrls(w http.ResponseWriter, r *http.Request) {
 
 func (h *ShortenHandler) CloseCh() {
 	close(h.DeleteCh)
+}
+
+func (h *ShortenHandler) AddToChan(id string) {
+	h.DeleteCh <- id
 }
