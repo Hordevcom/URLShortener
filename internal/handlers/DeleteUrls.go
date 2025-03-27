@@ -29,17 +29,3 @@ func (h *ShortenHandler) DeleteUrls(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusAccepted)
 }
-
-// func (h *ShortenHandler) UpdateDeleteWorker(ctx context.Context, urlsCh <-chan string, wg *sync.WaitGroup) {
-// 	defer wg.Done()
-// 	for urlID := range urlsCh {
-// 		h.DB.UpdateDeleteParam(ctx, urlID)
-// 	}
-// }
-
-// func (h *ShortenHandler) DeleteWorker(ctx context.Context, urlsCh <-chan string, wg *sync.WaitGroup) {
-// 	defer wg.Done()
-// 	for urlID := range urlsCh {
-// 		h.DB.Delete(ctx, urlID)
-// 	}
-// }

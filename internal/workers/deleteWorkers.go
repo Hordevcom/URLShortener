@@ -32,6 +32,7 @@ func (w *Worker) UpdateDeleteWorker(ctx context.Context, urlsCh <-chan string) {
 	defer w.wg.Done()
 	for urlID := range urlsCh {
 		w.DB.UpdateDeleteParam(ctx, urlID)
+		w.deleteCh <- urlID
 	}
 }
 
