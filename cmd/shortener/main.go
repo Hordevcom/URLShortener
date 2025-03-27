@@ -37,8 +37,8 @@ func main() {
 	}
 
 	server := &http.Server{Addr: conf.ServerAdress, Handler: router}
-	graceful := make(chan os.Signal, 1)
-	signal.Notify(graceful, os.Interrupt)
+	// graceful := make(chan os.Signal, 1)
+	// signal.Notify(graceful, os.Interrupt)
 
 	go func() {
 		logger.Infow("Starting server", "addr", conf.ServerAdress)
@@ -47,8 +47,11 @@ func main() {
 		}
 	}()
 
-	<-graceful
-	server.Shutdown(ctx)
+	// <-graceful
+	<-ctx.Done()
+	if err := server.Shutdown(context.Background()); err != nil {
+		logger.Errorw("Server shutdown error", err)
+	}
 
 	workers.StopWorker()
 	handler.CloseCh()

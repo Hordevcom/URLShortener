@@ -30,16 +30,32 @@ func NewDeleteWorker(ctx context.Context, DB *pg.PGDB, deleteCh chan string) *Wo
 
 func (w *Worker) UpdateDeleteWorker(ctx context.Context, urlsCh <-chan string) {
 	defer w.wg.Done()
-	for urlID := range urlsCh {
-		w.DB.UpdateDeleteParam(ctx, urlID)
-		w.deleteCh <- urlID
+	for {
+		select {
+		case <-w.ctx.Done():
+			return
+		case urlID, ok := <-w.deleteCh:
+			if !ok {
+				return
+			}
+			w.DB.UpdateDeleteParam(ctx, urlID)
+			w.deleteCh <- urlID
+		}
 	}
 }
 
 func (w *Worker) DeleteWorker(ctx context.Context, urlsCh <-chan string) {
 	defer w.wg.Done()
-	for urlID := range urlsCh {
-		w.DB.Delete(ctx, urlID)
+	for {
+		select {
+		case <-w.ctx.Done():
+			return
+		case urlID, ok := <-w.deleteCh:
+			if !ok {
+				return
+			}
+			w.DB.Delete(ctx, urlID)
+		}
 	}
 }
 
