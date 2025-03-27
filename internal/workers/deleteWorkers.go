@@ -44,6 +44,5 @@ func (w *Worker) DeleteWorker(ctx context.Context, urlsCh <-chan string) {
 }
 
 func (w *Worker) StopWorker() {
-	close(w.deleteCh)
 	w.wg.Wait()
 }

@@ -51,4 +51,5 @@ func main() {
 	server.Shutdown(ctx)
 
 	workers.StopWorker()
+	handler.CloseCh()
 }
