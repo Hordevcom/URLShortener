@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/Hordevcom/URLShortener/internal/config"
 	"github.com/Hordevcom/URLShortener/internal/handlers"
@@ -15,6 +18,8 @@ import (
 )
 
 func main() {
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
 
 	DeleteCh := make(chan string, 6)
 	logger := logging.NewLogger()
@@ -25,17 +30,28 @@ func main() {
 	handler := handlers.NewShortenHandler(
 		strg, conf, *JSONStorage, *db, DeleteCh)
 	router := routes.NewRouter(*handler)
-	workers.NewDeleteWorker(context.Background(), db, DeleteCh)
+	workers := workers.NewDeleteWorker(ctx, db, DeleteCh)
 
 	if conf.DatabaseDsn != "" {
 		pg.InitMigrations(conf, logger)
 	}
 
-	logger.Infow("Starting server", "addr", conf.ServerAdress)
-	err := http.ListenAndServe(conf.ServerAdress, router)
+	server := &http.Server{Addr: conf.ServerAdress, Handler: router}
+	graceful := make(chan os.Signal, 1)
+	signal.Notify(graceful, os.Interrupt)
 
-	if err != nil {
-		logger.Fatalw("create server error: ", err)
-	}
+	go func() {
+		logger.Infow("Starting server", "addr", conf.ServerAdress)
+		server.ListenAndServe()
+		err := server.ListenAndServe()
 
+		if err != nil {
+			logger.Fatalw("create server error: ", err)
+		}
+	}()
+
+	<-graceful
+	server.Shutdown(ctx)
+
+	workers.StopWorker()
 }

@@ -42,3 +42,8 @@ func (w *Worker) DeleteWorker(ctx context.Context, urlsCh <-chan string) {
 		w.DB.Delete(ctx, urlID)
 	}
 }
+
+func (w *Worker) StopWorker() {
+	close(w.deleteCh)
+	w.wg.Wait()
+}
