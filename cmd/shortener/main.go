@@ -42,10 +42,7 @@ func main() {
 
 	go func() {
 		logger.Infow("Starting server", "addr", conf.ServerAdress)
-		server.ListenAndServe()
-		err := server.ListenAndServe()
-
-		if err != nil {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Fatalw("create server error: ", err)
 		}
 	}()
