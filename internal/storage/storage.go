@@ -1,6 +1,8 @@
 package storage
 
 import (
+	"context"
+
 	"github.com/Hordevcom/URLShortener/internal/config"
 	"github.com/Hordevcom/URLShortener/internal/files"
 	"github.com/Hordevcom/URLShortener/internal/storage/pg"
@@ -8,8 +10,8 @@ import (
 )
 
 type Storage interface {
-	Set(key, value string) bool
-	Get(key string) (string, bool)
+	Set(ctx context.Context, key, value string, userID int) bool
+	Get(ctx context.Context, key string) (string, bool)
 }
 
 type MapStorage struct {
@@ -33,12 +35,12 @@ func NewStorage(conf config.Config, logger zap.SugaredLogger) Storage {
 	return NewMapStorage()
 }
 
-func (s *MapStorage) Set(key, value string) bool {
+func (s *MapStorage) Set(ctx context.Context, key, value string, userID int) bool {
 	s.data[key] = value
 	return true
 }
 
-func (s *MapStorage) Get(key string) (string, bool) {
+func (s *MapStorage) Get(ctx context.Context, key string) (string, bool) {
 	value, exist := s.data[key]
 	return value, exist
 }

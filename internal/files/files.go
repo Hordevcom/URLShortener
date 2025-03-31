@@ -2,6 +2,7 @@ package files
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -29,7 +30,7 @@ func NewFile(config config.Config, logger zap.SugaredLogger) *File {
 	return f
 }
 
-func (f *File) Set(shortURL, origURL string) bool { //jsonStruct JSONStruct,
+func (f *File) Set(ctx context.Context, shortURL, origURL string, userID int) bool { //jsonStruct JSONStruct,
 
 	jsonStruct := JSONStruct{
 		ShortURL:    shortURL,
@@ -70,7 +71,7 @@ func (f *File) Set(shortURL, origURL string) bool { //jsonStruct JSONStruct,
 	return true
 }
 
-func (f *File) Get(shortURL string) (string, bool) { //strg storage.Storage
+func (f *File) Get(ctx context.Context, shortURL string) (string, bool) { //strg storage.Storage
 
 	data := make(map[string]string)
 
