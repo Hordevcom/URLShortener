@@ -8,6 +8,7 @@ import (
 	"github.com/caarlos0/env/v11"
 )
 
+// Config структура
 type Config struct {
 	ServerAdress string `env:"SERVER_ADDRESS"`
 	Host         string `env:"BASE_URL"`
@@ -17,6 +18,7 @@ type Config struct {
 
 var once sync.Once
 
+// Конструктор для конфига
 func NewConfig() Config {
 
 	var conf Config

@@ -8,6 +8,7 @@ import (
 	"github.com/Hordevcom/URLShortener/internal/storage/pg"
 )
 
+// Worker структура воркера
 type Worker struct {
 	deleteCh chan string
 	DB       pg.PGDB
@@ -16,6 +17,7 @@ type Worker struct {
 	handler  handlers.ShortenHandler
 }
 
+// NewDeleteWorker конструктор для Worker
 func NewDeleteWorker(ctx context.Context, DB *pg.PGDB, deleteCh chan string, handler handlers.ShortenHandler) *Worker {
 	worker := &Worker{
 		ctx:      ctx,
@@ -31,6 +33,7 @@ func NewDeleteWorker(ctx context.Context, DB *pg.PGDB, deleteCh chan string, han
 	return worker
 }
 
+// UpdateDeleteWorker добавление урла в канал
 func (w *Worker) UpdateDeleteWorker(ctx context.Context, urlsCh <-chan string) {
 	defer w.wg.Done()
 	for {
@@ -47,6 +50,7 @@ func (w *Worker) UpdateDeleteWorker(ctx context.Context, urlsCh <-chan string) {
 	}
 }
 
+// DeleteWorker удаляет урл из бд, взятый из канала
 func (w *Worker) DeleteWorker(ctx context.Context, urlsCh <-chan string) {
 	defer w.wg.Done()
 	for {

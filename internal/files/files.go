@@ -12,24 +12,27 @@ import (
 	"go.uber.org/zap"
 )
 
+// JSONStruct используется для сериализации JSON
 type JSONStruct struct {
 	UUID        string `json:"uuid"`
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
 }
 
+// File структура
 type File struct {
 	config config.Config
 	logger zap.SugaredLogger
 	UUID   int
 }
 
+// NewFile конструктор для структуры File
 func NewFile(config config.Config, logger zap.SugaredLogger) *File {
 	f := &File{config: config, logger: logger}
-	// f.ReadFile(storage)
 	return f
 }
 
+// Set сохранение данных в файл
 func (f *File) Set(ctx context.Context, shortURL, origURL string, userID int) bool { //jsonStruct JSONStruct,
 
 	jsonStruct := JSONStruct{
@@ -71,6 +74,7 @@ func (f *File) Set(ctx context.Context, shortURL, origURL string, userID int) bo
 	return true
 }
 
+// Get получить данные из файла
 func (f *File) Get(ctx context.Context, shortURL string) (string, bool) { //strg storage.Storage
 
 	data := make(map[string]string)
@@ -96,7 +100,6 @@ func (f *File) Get(ctx context.Context, shortURL string) (string, bool) { //strg
 	for scanner.Scan() {
 		json.Unmarshal(scanner.Bytes(), &jsonStrct)
 		data[jsonStrct.ShortURL] = jsonStrct.OriginalURL
-		//strg.Set(jsonStrct.ShortURL, jsonStrct.OriginalURL)
 	}
 
 	f.UUID, _ = strconv.Atoi(jsonStrct.UUID)
