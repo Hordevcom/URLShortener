@@ -8,11 +8,13 @@ import (
 	"github.com/Hordevcom/URLShortener/internal/middleware/jwtgen"
 )
 
+// ShortenOrigURLs структура для серриализации JSON
 type ShortenOrigURLs struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
 }
 
+// GetUserUrls по этому хендлеру получаем все урлы конкретного пользователя
 func (h *ShortenHandler) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("token")
 	var UserID int

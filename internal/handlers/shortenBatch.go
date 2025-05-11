@@ -7,6 +7,7 @@ import (
 	"github.com/Hordevcom/URLShortener/internal/storage/pg"
 )
 
+// BatchShortenURL хандлер для обработки группы сайтов
 func (h *ShortenHandler) BatchShortenURL(w http.ResponseWriter, r *http.Request) {
 	var requests []pg.ShortenRequest
 

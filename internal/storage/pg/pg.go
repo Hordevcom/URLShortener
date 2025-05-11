@@ -19,22 +19,26 @@ import (
 	"go.uber.org/zap"
 )
 
+// PGDB структура для хранения переменных
 type PGDB struct {
 	config config.Config
 	logger zap.SugaredLogger
 	DB     *pgxpool.Pool
 }
 
+// ShortenRequest структура для серриализации запросов
 type ShortenRequest struct {
 	CorrelationID string `json:"correlation_id"`
 	OriginalURL   string `json:"original_url"`
 }
 
+// ShortenResponce структура для серриализации ответов
 type ShortenResponce struct {
 	CorrelationID string `json:"correlation_id"`
 	ShortURL      string `json:"short_url"`
 }
 
+// NewPGDB конструктор для структуры
 func NewPGDB(config config.Config, logger zap.SugaredLogger) *PGDB {
 	db, err := pgxpool.New(context.Background(), config.DatabaseDsn)
 
@@ -45,6 +49,7 @@ func NewPGDB(config config.Config, logger zap.SugaredLogger) *PGDB {
 	return &PGDB{config: config, logger: logger, DB: db}
 }
 
+// BatchShortenURL функция для добавления группы урлов в бд
 func (p *PGDB) BatchShortenURL(ctx context.Context, requests []ShortenRequest) ([]ShortenResponce, error) {
 	tx, err := p.DB.Begin(ctx)
 
@@ -85,6 +90,7 @@ func (p *PGDB) BatchShortenURL(ctx context.Context, requests []ShortenRequest) (
 	return responces, nil
 }
 
+// UpdateDeleteParam функция для удаления группы урлов из бд
 func (p *PGDB) UpdateDeleteParam(ctx context.Context, shortURLs string) {
 	query := `UPDATE urls
 				SET is_deleted = TRUE
@@ -97,6 +103,7 @@ func (p *PGDB) UpdateDeleteParam(ctx context.Context, shortURLs string) {
 	}
 }
 
+// ConnectToDB подключение к бд
 func (p *PGDB) ConnectToDB(ctx context.Context) (*pgxpool.Pool, error) {
 	db, err := pgxpool.New(ctx, p.config.DatabaseDsn) //sql.Open("pgx", p.config.DatabaseDsn)
 
@@ -116,6 +123,7 @@ func (p *PGDB) ConnectToDB(ctx context.Context) (*pgxpool.Pool, error) {
 	return db, nil
 }
 
+// Ping пинг до базы данных
 func (p *PGDB) Ping(ctx context.Context) error {
 	err := p.DB.Ping(ctx)
 
@@ -127,6 +135,7 @@ func (p *PGDB) Ping(ctx context.Context) error {
 	return nil
 }
 
+// Get получение данных из бд
 func (p *PGDB) Get(ctx context.Context, shortURL string) (string, bool) {
 	var origURL string
 
@@ -140,6 +149,7 @@ func (p *PGDB) Get(ctx context.Context, shortURL string) (string, bool) {
 	return origURL, true
 }
 
+// Delete удалить урл из бд
 func (p *PGDB) Delete(ctx context.Context, shortURLs string) {
 	query := `DELETE FROM urls
 				WHERE short_url = $1`
@@ -152,6 +162,7 @@ func (p *PGDB) Delete(ctx context.Context, shortURLs string) {
 	}
 }
 
+// GetWithUserID получить урлы по userID
 func (p *PGDB) GetWithUserID(ctx context.Context, UserID int) (map[string]string, bool) {
 	var origURL string
 	var shortURL string
@@ -180,6 +191,7 @@ func (p *PGDB) GetWithUserID(ctx context.Context, UserID int) (map[string]string
 	return URLs, true
 }
 
+// Set сохранить урл в бд
 func (p *PGDB) Set(ctx context.Context, shortURL, originalURL string, userID int) bool {
 	query := `INSERT INTO urls (short_url, original_url, user_id)
 	 VALUES ($1, $2, $3) ON CONFLICT (short_url) DO NOTHING`
@@ -199,6 +211,7 @@ func (p *PGDB) Set(ctx context.Context, shortURL, originalURL string, userID int
 	return true
 }
 
+// InitMigrations миграции
 func InitMigrations(conf config.Config, logger zap.SugaredLogger) {
 	logger.Infow("Start migrations")
 	db, err := sql.Open("pgx", conf.DatabaseDsn)

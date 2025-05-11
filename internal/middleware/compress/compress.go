@@ -13,10 +13,12 @@ type gzipWriter struct {
 	Writer io.Writer
 }
 
+// Write запись данных
 func (w gzipWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
 }
 
+// CompressMiddleware прослойка для компресии данных
 func CompressMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
@@ -33,6 +35,7 @@ func CompressMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// DecompressMiddleware прослойка для декомпресии данных
 func DecompressMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 

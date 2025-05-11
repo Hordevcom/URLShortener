@@ -13,6 +13,25 @@ import (
 	"github.com/Hordevcom/URLShortener/internal/storage"
 )
 
+func BenchmarkShortenURL(b *testing.B) {
+	m1 := storage.NewMapStorage()
+	m1.Set(context.Background(), "abc123", "https://example.com", 0)
+	conf := config.Config{Host: "http://localhost"}
+
+	app := &ShortenHandler{
+		Storage: m1,
+		Config:  conf,
+	}
+	req := httptest.NewRequest(http.MethodPost, "/api/shorten", nil)
+	req.AddCookie(&http.Cookie{Name: "token", Value: "mock.jwt.token"})
+
+	for i := 0; i < b.N; i++ {
+		rec := httptest.NewRecorder()
+		app.ShortenURL(rec, req)
+
+	}
+}
+
 func TestShortenURL(t *testing.T) {
 	m1 := storage.NewMapStorage()
 	m1.Set(context.Background(), "abc123", "https://example.com", 0)
