@@ -49,7 +49,7 @@ func ExampleShortenHandler_ShortenURL() {
 
 	// Output:
 	// 201
-	// http://localhost:8080/c984d06a
+	// /c984d06a
 }
 
 func ExampleShortenHandler_ShortenURLJSON() {
