@@ -30,6 +30,7 @@ func NewShortenHandler(storage storage.Storage, config config.Config, JSONStorag
 	}
 }
 
+// ShortenURL осуществляет сокращение урла, переданного с помощью text/plain
 func (h *ShortenHandler) ShortenURL(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("token")
 

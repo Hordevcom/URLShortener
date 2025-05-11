@@ -7,10 +7,12 @@ import (
 	"net/http"
 )
 
+// Структура, необходимая для декодирования JSON
 type Response struct {
 	Result string `json:"result"`
 }
 
+// ShortenURLJSON осуществляет сокращение урла, переданного с помощью JSON
 func (h *ShortenHandler) ShortenURLJSON(w http.ResponseWriter, r *http.Request) {
 	// extract string from json
 	err := json.NewDecoder(r.Body).Decode(&h.JSONStorage)
