@@ -66,6 +66,7 @@ func (w *Worker) DeleteWorker(ctx context.Context, urlsCh <-chan string) {
 	}
 }
 
+// StopWorker останавливает воркеры
 func (w *Worker) StopWorker() {
 	w.wg.Wait()
 }
