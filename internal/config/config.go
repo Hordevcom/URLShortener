@@ -3,6 +3,7 @@ package config
 import (
 	"flag"
 	"fmt"
+	"sync"
 
 	"github.com/caarlos0/env/v11"
 )
@@ -13,6 +14,8 @@ type Config struct {
 	FilePath     string `env:"FILE_STORAGE_PATH"`
 	DatabaseDsn  string `env:"DATABASE_DSN"`
 }
+
+var once sync.Once
 
 func NewConfig() Config {
 
@@ -27,17 +30,20 @@ func NewConfig() Config {
 		return conf
 	}
 
-	if conf.DatabaseDsn == "" {
-		flag.StringVar(&conf.DatabaseDsn, "d", "", "database dsn") //"postgres://postgres:1@localhost:5432/postgres"
-	}
+	once.Do(func() {
 
-	if conf.FilePath == "" {
-		flag.StringVar(&conf.FilePath, "f", "", "path to file") //"storage.txt"
-	}
+		if conf.DatabaseDsn == "" {
+			flag.StringVar(&conf.DatabaseDsn, "d", "", "database dsn") //"postgres://postgres:1@localhost:5432/postgres"
+		}
 
-	flag.StringVar(&conf.ServerAdress, "a", "localhost:8080", "server adress")
-	flag.StringVar(&conf.Host, "b", "http://localhost:8080", "host")
+		if conf.FilePath == "" {
+			flag.StringVar(&conf.FilePath, "f", "", "path to file") //"storage.txt"
+		}
 
-	flag.Parse()
+		flag.StringVar(&conf.ServerAdress, "a", "localhost:8080", "server adress")
+		flag.StringVar(&conf.Host, "b", "http://localhost:8080", "host")
+
+		flag.Parse()
+	})
 	return conf
 }

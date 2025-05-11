@@ -74,6 +74,7 @@ func ExampleShortenHandler_ShortenURLJSON() {
 	// Вызываем хендлер
 	handler.ServeHTTP(rr, req)
 	resp := rr.Result()
+	defer resp.Body.Close()
 
 	var res Response
 	json.NewDecoder(resp.Body).Decode(&res)
