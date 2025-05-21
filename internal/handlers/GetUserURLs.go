@@ -53,8 +53,8 @@ func (h *ShortenHandler) GetUserUrls(w http.ResponseWriter, r *http.Request) {
 			OriginalURL: value,
 		})
 	}
-	var ShorigURLs1 []ShortenOrigURLs
-	ShorigURLs1 = append(ShorigURLs1, ShorigURLs[1])
+	//var ShorigURLs1 ShortenOrigURLs
+	ShorigURLs1 := ShorigURLs[1]
 	fmt.Println(ShorigURLs)
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(ShorigURLs1)
