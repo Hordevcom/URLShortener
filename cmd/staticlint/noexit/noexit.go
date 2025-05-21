@@ -8,12 +8,14 @@ import (
 	"golang.org/x/tools/go/analysis"
 )
 
+// Analyzer = analazyer
 var Analyzer = &analysis.Analyzer{
 	Name: "noexit",
 	Doc:  "запрещает использование os.Exit в функции main пакета main",
 	Run:  run,
 }
 
+// run run boy run
 func run(pass *analysis.Pass) (interface{}, error) {
 	if pass.Pkg.Name() != "main" {
 		return nil, nil
