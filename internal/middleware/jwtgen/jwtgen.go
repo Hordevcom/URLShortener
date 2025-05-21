@@ -8,6 +8,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+// Claims требования
 type Claims struct {
 	jwt.RegisteredClaims
 	UserID int
@@ -17,6 +18,7 @@ var tokenExp = time.Hour * 12
 
 var secretKey = "supersecretkey"
 
+// BuildJWTString построение jwt строки по заданной строке
 func BuildJWTString() (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -34,6 +36,7 @@ func BuildJWTString() (string, error) {
 	return tokenString, nil
 }
 
+// GetUserID получить userID из jwt
 func GetUserID(tokenString string) int {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenString, claims,
@@ -54,6 +57,7 @@ func GetUserID(tokenString string) int {
 	return claims.UserID
 }
 
+// AuthMiddleware прослойка для авторизации
 func AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, err := r.Cookie("token")

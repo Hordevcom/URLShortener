@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+// NewRouter описание всех эндпоинтов
 func NewRouter(handler handlers.ShortenHandler) *chi.Mux {
 	router := chi.NewRouter()
 
