@@ -13,7 +13,7 @@ import (
 func main() {
 	var analyzers []*analysis.Analyzer
 
-	// SA анализаторы
+	// SA анализаторы aga
 	for _, a := range staticcheck.Analyzers {
 		if a.Analyzer.Name[:2] == "SA" {
 			analyzers = append(analyzers, a.Analyzer)
