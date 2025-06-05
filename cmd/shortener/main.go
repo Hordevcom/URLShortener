@@ -33,7 +33,7 @@ func main() {
 	certFile := "server.crt"
 	keyFile := "server.key"
 
-	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
 	defer cancel()
 
 	DeleteCh := make(chan string, 6)
@@ -63,7 +63,7 @@ func main() {
 	} else {
 		go func() {
 			logger.Infow("Starting https server")
-			err := http.ListenAndServeTLS(":8443", certFile, keyFile, nil)
+			err := http.ListenAndServeTLS(":8443", certFile, keyFile, router)
 			if err != nil {
 				logger.Fatal("error while start server: ", err)
 			}
