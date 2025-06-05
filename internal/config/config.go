@@ -46,8 +46,8 @@ func NewConfig() Config {
 			flag.StringVar(&conf.FilePath, "f", "", "path to file") //"storage.txt"
 		}
 
-		flag.StringVar(&conf.ServerAdress, "a", "", "server adress") //localhost:8080
-		flag.StringVar(&conf.Host, "b", "", "host")
+		flag.StringVar(&conf.ServerAdress, "a", "localhost:8080", "server adress") //localhost:8080
+		flag.StringVar(&conf.Host, "b", "http://localhost:8080", "host")
 		flag.StringVar(&conf.ConfigFile, "c", "", "config file")
 		flag.BoolVar(&conf.HTTPSEnable, "s", false, "use https or not")
 
