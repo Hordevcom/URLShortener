@@ -30,6 +30,9 @@ func main() {
 	fmt.Println("Build date:", buildDate)
 	fmt.Println("Build commit:", buildCommit)
 
+	certFile := "server.crt"
+	keyFile := "server.key"
+
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
@@ -50,12 +53,22 @@ func main() {
 
 	server := &http.Server{Addr: conf.ServerAdress, Handler: router}
 
-	go func() {
-		logger.Infow("Starting server", "addr", conf.ServerAdress)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			logger.Fatalw("create server error: ", err)
-		}
-	}()
+	if !conf.HttpsEnable {
+		go func() {
+			logger.Infow("Starting http server", "addr", conf.ServerAdress)
+			if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+				logger.Fatalw("create server error: ", err)
+			}
+		}()
+	} else {
+		go func() {
+			logger.Infow("Starting https server")
+			err := http.ListenAndServeTLS(":8443", certFile, keyFile, nil)
+			if err != nil {
+				logger.Fatal("error while start server: ", err)
+			}
+		}()
+	}
 
 	<-ctx.Done()
 	if err := server.Shutdown(context.Background()); err != nil {

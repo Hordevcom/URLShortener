@@ -14,6 +14,7 @@ type Config struct {
 	Host         string `env:"BASE_URL"`
 	FilePath     string `env:"FILE_STORAGE_PATH"`
 	DatabaseDsn  string `env:"DATABASE_DSN"`
+	HttpsEnable  bool   `env:"ENABLE_HTTPS"`
 }
 
 var once sync.Once
@@ -44,6 +45,7 @@ func NewConfig() Config {
 
 		flag.StringVar(&conf.ServerAdress, "a", "localhost:8080", "server adress")
 		flag.StringVar(&conf.Host, "b", "http://localhost:8080", "host")
+		flag.BoolVar(&conf.HttpsEnable, "s", false, "use https or not")
 
 		flag.Parse()
 	})
