@@ -53,7 +53,7 @@ func main() {
 
 	server := &http.Server{Addr: conf.ServerAdress, Handler: router}
 
-	if !conf.HttpsEnable {
+	if !conf.HTTPSEnable {
 		go func() {
 			logger.Infow("Starting http server", "addr", conf.ServerAdress)
 			if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
